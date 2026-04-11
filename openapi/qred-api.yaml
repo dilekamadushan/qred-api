@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  title: Qred API
+  version: 1.0.0
+  description: |
+    This OpenAPI document is the single source of truth for the mobile dashboard
+    shown in the product design. It is intended to be reviewed collaboratively by
+    Backend, Frontend, and Product before implementation starts.
+servers:
+  - url: http://0.0.0.0:4010
+    description: Sandbox
+  - url: https://api.qred.example.com
+    description: Production
+tags:
+  - name: Companies
+    description: Company context and selector data.
+  - name: Dashboard
+    description: Aggregated dashboard data for the selected company.
+  - name: Cards
+    description: Card-specific actions.
+  - name: Transactions
+    description: Transaction history and pagination.
+
+security:
+  - bearerAuth: []
+paths:
+  /v1/dashboard:
+    $ref: "./paths/dashboard.yaml#/~1v1~1dashboard"
+  /v1/companies/{companyId}/card/default:
+    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1card~1default"
+  /v1/companies:
+    $ref: "./paths/companies.yaml#/~1v1~1companies"
+  /v1/user/company-selection:
+    $ref: "./paths/companies.yaml#/~1v1~1user~1company-selection"
+  /v1/companies/{companyId}/invoices/{invoiceId}:
+    $ref: "./paths/company-resources.yaml#/~1v1~1companies~1{companyId}~1invoices~1{invoiceId}"
+  /v1/companies/{companyId}/remaining-spend:
+    $ref: "./paths/company-resources.yaml#/~1v1~1companies~1{companyId}~1remaining-spend"
+  /v1/companies/{companyId}/cards/{cardId}:
+    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}"
+  /v1/companies/{companyId}/cards/{cardId}/block:
+    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}~1block"
+  /v1/companies/{companyId}/cards/{cardId}/unblock:
+    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}~1unblock"
+  /v1/companies/{companyId}/cards/{cardId}/activate:
+    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}~1activate"
+  /v1/companies/{companyId}/transactions:
+    $ref: "./paths/transactions.yaml#/~1v1~1companies~1{companyId}~1transactions"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    CompanyId:
+      $ref: "./components/parameters.yaml#/CompanyId"
+    CardId:
+      $ref: "./components/parameters.yaml#/CardId"
+    Cursor:
+      $ref: "./components/parameters.yaml#/Cursor"
+    PageSize:
+      $ref: "./components/parameters.yaml#/PageSize"

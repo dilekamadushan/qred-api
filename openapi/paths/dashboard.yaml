@@ -1,0 +1,134 @@
+# Dashboard endpoints
+/v1/dashboard:
+  get:
+    tags: [Dashboard]
+    operationId: getDashboard
+    summary: Get the mobile dashboard for the authenticated user’s selected company.
+    description: |
+      Returns all data required to render the main dashboard screen in a single
+      request, including card summary, invoice due, remaining spend, and a preview
+      of the latest transactions.
+
+      This endpoint is an aggregated read model. The backend fetches data from multiple services in parallel, with timeouts and fallbacks. If some sections are unavailable, the API returns partial data with per-section status, allowing the UI to render what is available immediately and show loading/error states for missing sections. This keeps the UX fast and resilient, while still supporting granular endpoints for advanced flows.
+    parameters:
+      - name: transactionPreviewLimit
+        in: query
+        description: Number of transactions included in the dashboard preview.
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 3
+    responses:
+      "200":
+        description: Dashboard successfully returned.
+        headers:
+          X-Request-Id:
+            description: Unique identifier for the request, useful for debugging and tracing.
+            schema:
+              type: string
+            example: req_6b39d1d4
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/DashboardResponse"
+            examples:
+              default:
+                value:
+                  data:
+                    company:
+                      value:
+                        id: cmp_123
+                        name: Company AB
+                        hasMoreCompanies: true
+                        logoUrl: "https://cdn.qred.example.com/company-logos/cmp_123.png"
+                    card:
+                      value:
+                        id: card_987
+                        status: active
+                        artworkUrl: "https://cdn.qred.example.com/card-artwork/visa.png"
+                    invoice:
+                      value:
+                        id: inv_456
+                        status: due
+                        dueDate: "2026-05-01"
+                    spend:
+                      value:
+                        used: 1200.5
+                        total: 5000
+                        currency: SEK
+                    transactions:
+                      value:
+                        items:
+                          - id: txn_001
+                            description: "Coffee purchase"
+                            amount: 45.0
+                            createdAt: "2026-04-10T10:16:05Z"
+                            merchantUrl: "https://app.qred.example.com/merchants/espresso-house"
+                          - id: txn_002
+                            description: "Lunch"
+                            amount: 120.0
+                            createdAt: "2026-04-09T12:30:00Z"
+                            merchantUrl: "https://app.qred.example.com/merchants/lunch-bar"
+                          - id: txn_003
+                            description: "Taxi"
+                            amount: 300.0
+                            createdAt: "2026-04-08T08:15:00Z"
+                            merchantUrl: "https://app.qred.example.com/merchants/taxi"
+                    viewMore:
+                      value:
+                        remainingTransactions: 10
+              partial-error:
+                value:
+                  data:
+                    company:
+                      value:
+                        id: cmp_123
+                        name: Company AB
+                        hasMoreCompanies: true
+                        logoUrl: "https://cdn.qred.example.com/company-logos/cmp_123.png"
+                    card:
+                      error: "Service unavailable"
+                    invoice:
+                      value:
+                        id: inv_456
+                        status: due
+                        dueDate: "2026-05-01"
+                    spend:
+                      error: "Timeout"
+                    transactions:
+                      value:
+                        items:
+                          - id: txn_001
+                            description: "Coffee purchase"
+                            amount: 45.0
+                            createdAt: "2026-04-10T10:16:05Z"
+                            merchantUrl: "https://app.qred.example.com/merchants/espresso-house"
+                          - id: txn_002
+                            description: "Lunch"
+                            amount: 120.0
+                            createdAt: "2026-04-09T12:30:00Z"
+                            merchantUrl: "https://app.qred.example.com/merchants/lunch-bar"
+                          - id: txn_003
+                            description: "Taxi"
+                            amount: 300.0
+                            createdAt: "2026-04-08T08:15:00Z"
+                            merchantUrl: "https://app.qred.example.com/merchants/taxi"
+                    viewMore:
+                      value:
+                        remainingTransactions: 10
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "429":
+        $ref: "../components/responses.yaml#/TooManyRequests"
+      "503":
+        $ref: "../components/responses.yaml#/ServiceUnavailable"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
