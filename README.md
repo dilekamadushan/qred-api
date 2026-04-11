@@ -92,7 +92,12 @@ Maintaining a clear UI-to-endpoint map ensures that product, frontend, and backe
 This ensures your API contract and types are always up to date with your codebase.
 
 # Step 3: Summary of Recent Changes
+
 - Implemented Data model required to support the api
 - Sequelize was used as the ORM as it has advantages like Object oriented approach and sql injection prevention etc
 - Implemented indexes and foreign keys to improve integrity and consistency of the data
 - Seed script truncates all tables before inserting data, ensuring a clean state.
+
+# Step 4: ESLint Integration
+
+- For Consistent code quality for maintainability, collaboration, and reliability

@@ -18,13 +18,19 @@
     "prestart": "npm run openapi:all",
     "start": "node dist/server.js",
     "db:setup": "tsx src/db/sequelize.ts --force --seed",
-    "db:seed": "tsx src/db/seed/seed.ts"
+    "db:seed": "tsx src/db/seed/seed.ts",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix"
   },
   "devDependencies": {
     "@redocly/cli": "^2.26.0",
     "@stoplight/prism-cli": "^5.14.2",
     "@types/express": "^5.0.6",
     "@types/node": "^25.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
     "nodemon": "^3.1.14",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.8.2",
