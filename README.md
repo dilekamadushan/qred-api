@@ -77,3 +77,16 @@ This allows the frontend to develop and test against realistic API responses bef
 **Motivation:**
 
 Maintaining a clear UI-to-endpoint map ensures that product, frontend, and backend teams are always aligned. It reduces ambiguity, speeds up onboarding, and makes it easy to spot gaps or over-engineering. Visual diagrams and tables help reviewers and new team members quickly understand how the API supports the user experience.
+
+# 2nd commit
+
+- Added OpenAPI contract and generated TypeScript types.
+- Set up initial project structure: src/app.ts, src/server.ts, - Sequelize config, and folders for models, seed, mappers, routes, and services.
+- Added /health route in src/routes/health.ts.
+
+### Automation details
+
+- The OpenAPI bundle and TypeScript types are always generated before dev, build, or start via npm lifecycle hooks (`predev`, `prebuild`, `prestart`).
+- You never need to manually run the bundle/typegen steps unless you want to.
+
+This ensures your API contract and types are always up to date with your codebase.

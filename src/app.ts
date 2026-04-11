@@ -23,11 +23,18 @@ app.use((_req: Request, res: Response) => {
   });
 });
 
-app.use((err: Error & { status?: number; errors?: unknown }, _req: Request, res: Response, _next: NextFunction) => {
-  res.status(err.status ?? 500).json({
-    message: err.message,
-    errors: err.errors,
-  });
-});
+app.use(
+  (
+    err: Error & { status?: number; errors?: unknown },
+    _req: Request,
+    res: Response,
+    _next: NextFunction
+  ) => {
+    res.status(err.status ?? 500).json({
+      message: err.message,
+      errors: err.errors,
+    });
+  }
+);
 
 export default app;

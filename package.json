@@ -4,13 +4,18 @@
   "private": true,
   "scripts": {
     "openapi:bundle": "mkdir -p openapi/dist && redocly bundle openapi/qred-api.yaml --output openapi/dist/openapi.bundle.yaml",
+    "openapi:types": "npx openapi-typescript openapi/dist/openapi.bundle.yaml -o src/generated/openapi.ts",
+    "openapi:all": "npm run openapi:bundle && npm run openapi:types",
     "mock": "npm run openapi:bundle && prism mock openapi/dist/openapi.bundle.yaml --host 0.0.0.0 --port 4010",
     "mock:dynamic": "npm run openapi:bundle && prism mock openapi/dist/openapi.bundle.yaml --dynamic --host 0.0.0.0 --port 4010",
     "docs:swagger": "npm run openapi:bundle && npx swagger-ui-watcher openapi/dist/openapi.bundle.yaml --port 8080",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
+    "predev": "npm run openapi:all",
     "dev": "nodemon --watch src --ext ts,js,json --exec tsx src/server.ts",
+    "prebuild": "npm run openapi:all",
     "build": "tsc",
+    "prestart": "npm run openapi:all",
     "start": "node dist/server.js"
   },
   "devDependencies": {
