@@ -1,0 +1,172 @@
+# Get the default card for a company
+/v1/companies/{companyId}/card/default:
+  get:
+    tags: [Cards]
+    operationId: getDefaultCard
+    summary: Get the default card for a company
+    description: |
+      Returns the default (main) card for the specified company. Used for dashboard partial reloads or error recovery.
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+    responses:
+      "200":
+        description: Default card returned.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/CardSummary"
+            examples:
+              success:
+                value:
+                  id: card_987
+                  status: active
+                  displayName: "Main Card"
+                  maskedPan: "**** **** **** 1234"
+                  brand: visa
+                  cardholderName: "Anna Andersson"
+                  artworkUrl: "https://cdn.qred.example.com/card-artwork/visa.png"
+              error:
+                value:
+                  error: "Service unavailable"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "429":
+        $ref: "../components/responses.yaml#/TooManyRequests"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+# Card endpoints
+/v1/companies/{companyId}/cards/{cardId}:
+  get:
+    tags: [Cards]
+    operationId: getCardDetails
+    summary: Get details for a specific card in a company.
+    description: Returns all available data for the selected card, scoped to the company.
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+      - $ref: "../components/parameters.yaml#/CardId"
+    responses:
+      "200":
+        description: Card details returned.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/CardSummary"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+/v1/companies/{companyId}/cards/{cardId}/block:
+  post:
+    tags: [Cards]
+    operationId: blockCard
+    summary: Block a card for a company.
+    description: Blocks the specified card (state transition to blocked), scoped to the company.
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+      - $ref: "../components/parameters.yaml#/CardId"
+    responses:
+      "200":
+        description: Card blocked successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/CardSummary"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+/v1/companies/{companyId}/cards/{cardId}/unblock:
+  post:
+    tags: [Cards]
+    operationId: unblockCard
+    summary: Unblock a card for a company.
+    description: Unblocks the specified card (state transition to active), scoped to the company.
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+      - $ref: "../components/parameters.yaml#/CardId"
+    responses:
+      "200":
+        description: Card unblocked successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/CardSummary"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+/v1/companies/{companyId}/cards/{cardId}/activate:
+  post:
+    tags: [Cards]
+    operationId: activateCard
+    summary: Activate a card for a company from the dashboard call to action.
+    description: Activates a card that is still pending activation, scoped to the company.
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+      - $ref: "../components/parameters.yaml#/CardId"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/CardActivationRequest"
+          examples:
+            default:
+              value:
+                confirmation: true
+                activatedVia: mobile_app
+    responses:
+      "200":
+        description: Card activated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/CardActivationResponse"
+            examples:
+              default:
+                value:
+                  data:
+                    cardId: card_987
+                    status: active
+                    activatedAt: "2026-04-10T10:16:05Z"
+                  meta:
+                    requestId: req_9d3f3112
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "409":
+        $ref: "../components/responses.yaml#/Conflict"
+      "422":
+        $ref: "../components/responses.yaml#/UnprocessableEntity"
+      "429":
+        $ref: "../components/responses.yaml#/TooManyRequests"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"

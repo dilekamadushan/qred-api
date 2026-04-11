@@ -1,0 +1,4 @@
+node_modules
+openapi/dist
+*.yaml
+*.yml

@@ -1,0 +1,138 @@
+---
+# Transactions endpoints
+/v1/companies/{companyId}/transactions:
+  get:
+    tags: [Transactions]
+    operationId: listCompanyTransactions
+    summary: List transactions for the selected company.
+    description: Returns the full transaction history for the selected company (all cards).
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+      - $ref: "../components/parameters.yaml#/Cursor"
+      - name: status
+        in: query
+        description: Filter transactions by status (pending, booked, declined, reversed).
+        required: false
+        schema:
+          type: string
+          enum: [pending, booked, declined, reversed]
+      - name: dateFrom
+        in: query
+        description: Filter transactions from this date (inclusive, YYYY-MM-DD).
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: dateTo
+        in: query
+        description: Filter transactions up to this date (inclusive, YYYY-MM-DD).
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: pageSize
+        in: query
+        description: Number of transactions to return per page.
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+      - name: sortBy
+        in: query
+        description: Field to sort transactions by (e.g., createdAt, amount, merchantName).
+        required: false
+        schema:
+          type: string
+          enum: [createdAt, amount, merchantName]
+          default: createdAt
+      - name: sortOrder
+        in: query
+        description: Sort order (asc or desc).
+        required: false
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+      - name: search
+        in: query
+        description: Search term to filter transactions by merchant name or description.
+        required: false
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Transactions successfully returned.
+        headers:
+          X-RateLimit-Limit:
+            $ref: ../components/responses.yaml#/RateLimitHeaders/headers/X-RateLimit-Limit
+          X-RateLimit-Remaining:
+            $ref: ../components/responses.yaml#/RateLimitHeaders/headers/X-RateLimit-Remaining
+          X-RateLimit-Reset:
+            $ref: ../components/responses.yaml#/RateLimitHeaders/headers/X-RateLimit-Reset
+          X-Request-Id:
+            description: Unique identifier for the request, useful for debugging and tracing.
+            schema:
+              type: string
+            example: req_abc123
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/TransactionListResponse"
+            examples:
+              default:
+                value:
+                  data:
+                    items:
+                      - id: txn_001
+                        createdAt: "2026-04-10T10:16:05Z"
+                        merchantName: "Espresso House"
+                        category: "coffee"
+                        amount:
+                          amountMinor: 4500
+                          currency: SEK
+                        direction: debit
+                        status: booked
+                        merchantUrl: "https://app.qred.example.com/transactions/txn_001"
+                      - id: txn_002
+                        createdAt: "2026-04-09T12:30:00Z"
+                        merchantName: "Lunch Bar"
+                        category: "food"
+                        amount:
+                          amountMinor: 12000
+                          currency: SEK
+                        direction: debit
+                        status: booked
+                        merchantUrl: "https://app.qred.example.com/transactions/txn_002"
+                    page:
+                      nextCursor: null
+                      pageSize: 2
+                      hasMore: false
+                  links:
+                    self: "https://api.qred.example.com/v1/companies/cmp_123/transactions?pageSize=2"
+                    next: null
+                    prev: null
+              search-sorted:
+                summary: Search and sort example
+                value:
+                  data:
+                    items:
+                      - id: txn_002
+                        createdAt: "2026-04-09T12:30:00Z"
+                        merchantName: "Lunch Bar"
+                        category: "food"
+                        amount:
+                          amountMinor: 12000
+                          currency: SEK
+                        direction: debit
+                        status: booked
+                        merchantUrl: "https://app.qred.example.com/merchants/lunch-bar"
+                    page:
+                      nextCursor: null
+                      pageSize: 1
+                      hasMore: false
+                  links:
+                    self: "https://api.qred.example.com/v1/companies/cmp_123/transactions?pageSize=1&search=Lunch"
+                    next: null
+                    prev: null

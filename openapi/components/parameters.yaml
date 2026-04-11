@@ -1,0 +1,32 @@
+# Parameters for OpenAPI contract
+CompanyId:
+  name: companyId
+  in: path
+  required: true
+  description: Unique identifier for the company selected in the mobile app.
+  schema:
+    type: string
+CardId:
+  name: cardId
+  in: path
+  required: true
+  description: Unique identifier for the card shown on the dashboard.
+  schema:
+    type: string
+Cursor:
+  name: cursor
+  in: query
+  required: false
+  description: Opaque cursor for forward pagination.
+  schema:
+    type: string
+PageSize:
+  name: pageSize
+  in: query
+  required: false
+  description: Number of transactions to return.
+  schema:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 25

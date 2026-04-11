@@ -1,0 +1,415 @@
+# Schemas for OpenAPI contract
+DashboardSection:
+  type: object
+  description: |
+    A dashboard section. If value is present, the section loaded successfully. If error is present, the section failed to load. Only one of value or error should be present.
+  properties:
+    value:
+      nullable: true
+      description: Section data, present on success.
+    error:
+      type: string
+      nullable: true
+      description: Error message if the section failed to load.
+
+DashboardResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: object
+      required: [company, card, invoice, spend, transactions, viewMore]
+      properties:
+        company:
+          allOf:
+            - $ref: "#/DashboardSection"
+          properties:
+            value:
+              type: object
+              required: [id, name, hasMoreCompanies]
+              properties:
+                id:
+                  type: string
+                  example: cmp_123
+                name:
+                  type: string
+                  example: Company AB
+                hasMoreCompanies:
+                  type: boolean
+                  description: True if the user has more than one company and should see the company selector.
+                  example: true
+        card:
+          allOf:
+            - $ref: "#/DashboardSection"
+          properties:
+            value:
+              type: object
+              required: [id, status, artworkUrl]
+              properties:
+                id:
+                  type: string
+                  example: card_987
+                status:
+                  type: string
+                  enum: [active, blocked, pending_activation]
+                  example: active
+                artworkUrl:
+                  type: string
+                  format: uri
+                  description: Card image URL for dashboard display.
+                  example: "https://cdn.qred.example.com/card-artwork/visa.png"
+        invoice:
+          allOf:
+            - $ref: "#/DashboardSection"
+          properties:
+            value:
+              type: object
+              required: [id, status, dueDate]
+              properties:
+                id:
+                  type: string
+                  example: inv_456
+                status:
+                  type: string
+                  enum: [due, paid]
+                  example: due
+                dueDate:
+                  type: string
+                  format: date
+                  example: "2026-05-01"
+        spend:
+          allOf:
+            - $ref: "#/DashboardSection"
+          properties:
+            value:
+              type: object
+              required: [used, total, currency]
+              properties:
+                used:
+                  type: number
+                  example: 1200.5
+                total:
+                  type: number
+                  example: 5000
+                currency:
+                  type: string
+                  example: SEK
+        transactions:
+          allOf:
+            - $ref: "#/DashboardSection"
+          properties:
+            value:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [id, description, amount, createdAt, merchantUrl]
+                    properties:
+                      id:
+                        type: string
+                        example: txn_001
+                      description:
+                        type: string
+                        example: "Coffee purchase"
+                      amount:
+                        type: number
+                        example: 45.0
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2026-04-10T10:16:05Z"
+                      merchantUrl:
+                        type: string
+                        format: uri
+                        description: Deep link to transaction details.
+                        example: "https://app.qred.example.com/transactions/txn_001"
+        viewMore:
+          allOf:
+            - $ref: "#/DashboardSection"
+          properties:
+            value:
+              type: object
+              required: [remainingTransactions]
+              properties:
+                remainingTransactions:
+                  type: integer
+                  example: 10
+
+CompanySummary:
+  type: object
+  required: [id, name, legalName, isDefault, logoUrl]
+  properties:
+    id:
+      type: string
+      example: cmp_123
+    name:
+      type: string
+      example: Company AB
+    legalName:
+      type: string
+      example: Company AB Sverige
+    isDefault:
+      type: boolean
+      example: true
+    logoUrl:
+      type: string
+      format: uri
+      description: URL for the company logo image.
+      example: "https://cdn.qred.example.com/company-logos/cmp_123.png"
+
+CardSummary:
+  type: object
+  required:
+    [id, status, displayName, maskedPan, brand, cardholderName, artworkUrl]
+  properties:
+    id:
+      type: string
+      example: card_987
+    status:
+      type: string
+      enum: [pending_activation, active, blocked, closed]
+      example: active
+    displayName:
+      type: string
+      example: "Main Card"
+    maskedPan:
+      type: string
+      example: "**** **** **** 1234"
+    brand:
+      type: string
+      enum: [visa, mastercard]
+      example: visa
+    cardholderName:
+      type: string
+      example: "Anna Andersson"
+    artworkUrl:
+      type: string
+      format: uri
+      description: Card image URL for dashboard and card details display.
+      example: "https://cdn.qred.example.com/card-artwork/visa.png"
+
+InvoiceDue:
+  type: object
+  required: [label, dueDate, amount]
+  properties:
+    label:
+      type: string
+      example: Invoice due
+    dueDate:
+      type: string
+      format: date
+    amount:
+      $ref: "#/Money"
+
+RemainingSpendSummary:
+  type: object
+  required: [spent, limit, remaining, utilizationPercent, label]
+  properties:
+    spent:
+      $ref: "#/Money"
+    limit:
+      $ref: "#/Money"
+    remaining:
+      $ref: "#/Money"
+    utilizationPercent:
+      type: integer
+      minimum: 0
+      maximum: 100
+    label:
+      type: string
+      example: based on your set limit
+
+TransactionPreview:
+  type: object
+  required: [items, totalCount]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/TransactionSummary"
+    totalCount:
+      type: integer
+      minimum: 0
+    nextCursor:
+      type: string
+      nullable: true
+
+TransactionListResponse:
+  type: object
+  required: [data, links]
+  properties:
+    data:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/TransactionSummary"
+        page:
+          $ref: "#/PageInfo"
+    links:
+      type: object
+      required: [self]
+      properties:
+        self:
+          type: string
+          format: uri
+        next:
+          type: string
+          format: uri
+          nullable: true
+        prev:
+          type: string
+          format: uri
+          nullable: true
+
+TransactionSummary:
+  type: object
+  required:
+    [id, createdAt, merchantName, category, amount, direction, status, merchantUrl]
+  properties:
+    id:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+      description: Transaction creation timestamp.
+    merchantName:
+      type: string
+    category:
+      type: string
+    amount:
+      $ref: "#/Money"
+    direction:
+      type: string
+      enum: [debit, credit]
+    status:
+      type: string
+      enum: [pending, booked, declined, reversed]
+    merchantUrl:
+      type: string
+      format: uri
+      description: Deep link to merchant or transaction details.
+
+DashboardActions:
+  type: object
+  required: [canActivateCard, activationUrl, transactionsUrl]
+  properties:
+    canActivateCard:
+      type: boolean
+    activationUrl:
+      type: string
+    transactionsUrl:
+      type: string
+
+CardActivationRequest:
+  type: object
+  required: [confirmation, activatedVia]
+  properties:
+    confirmation:
+      type: boolean
+      enum: [true]
+    activatedVia:
+      type: string
+      enum: [mobile_app]
+
+CardActivationResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      type: object
+      required: [cardId, status, activatedAt]
+      properties:
+        cardId:
+          type: string
+        status:
+          type: string
+          enum: [active]
+        activatedAt:
+          type: string
+          format: date-time
+    meta:
+      $ref: "#/ResponseMeta"
+
+PageInfo:
+  type: object
+  required: [pageSize, hasMore]
+  properties:
+    nextCursor:
+      type: string
+      nullable: true
+    pageSize:
+      type: integer
+      minimum: 1
+    hasMore:
+      type: boolean
+
+Money:
+  type: object
+  required: [amountMinor, currency]
+  properties:
+    amountMinor:
+      type: integer
+      description: Monetary amount in minor units, for example ore for SEK.
+    currency:
+      type: string
+      pattern: "^[A-Z]{3}$"
+
+ResponseMeta:
+  type: object
+  required: [requestId]
+  properties:
+    requestId:
+      type: string
+    generatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+ProblemDetails:
+  type: object
+  required: [type, title, status, detail, requestId, code]
+  properties:
+    type:
+      type: string
+      format: uri
+      example: https://api.qred.example.com/problems/validation-error
+    title:
+      type: string
+      example: Validation error
+    status:
+      type: integer
+      minimum: 400
+      maximum: 599
+    detail:
+      type: string
+    instance:
+      type: string
+      format: uri
+      nullable: true
+    requestId:
+      type: string
+    code:
+      type: string
+      example: validation_error
+    errors:
+      type: array
+      nullable: true
+      items:
+        $ref: "#/InvalidField"
+
+InvalidField:
+  type: object
+  required: [field, reason]
+  properties:
+    field:
+      type: string
+      example: transactionPreviewLimit
+    reason:
+      type: string
+      example: Must be between 1 and 10.

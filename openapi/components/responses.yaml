@@ -1,0 +1,80 @@
+RateLimitHeaders:
+  description: Rate limiting headers returned with all responses.
+  headers:
+    X-RateLimit-Limit:
+      description: The maximum number of requests allowed in the current time window.
+      schema:
+        type: integer
+      example: 1000
+    X-RateLimit-Remaining:
+      description: The number of requests remaining in the current time window.
+      schema:
+        type: integer
+      example: 250
+    X-RateLimit-Reset:
+      description: The time at which the current rate limit window resets in UTC epoch seconds.
+      schema:
+        type: integer
+      example: 1712841600
+# Responses for OpenAPI contract
+BadRequest:
+  description: The request was invalid.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+Unauthorized:
+  description: Authentication is missing or invalid.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+Forbidden:
+  description: The user does not have permission to access the requested resource.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+NotFound:
+  description: The requested resource could not be found.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+Conflict:
+  description: The request conflicts with the current state of the resource.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+UnprocessableEntity:
+  description: The request passed basic validation but cannot be processed.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+TooManyRequests:
+  description: The client has been rate limited.
+  headers:
+    Retry-After:
+      description: Number of seconds until the request may be retried.
+      schema:
+        type: integer
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+ServiceUnavailable:
+  description: |
+    A required downstream dependency for the dashboard is unavailable, so the
+    API cannot return a complete dashboard response.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"
+InternalServerError:
+  description: An unexpected server error occurred.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./schemas.yaml#/ProblemDetails"

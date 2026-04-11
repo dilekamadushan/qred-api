@@ -1,0 +1,145 @@
+---
+# Companies endpoints
+/v1/companies:
+  get:
+    tags: [Companies]
+    operationId: listCompanies
+    summary: List companies available to the authenticated user.
+    description: Returns the company selector data used at the top of the dashboard.
+    parameters:
+      - name: search
+        in: query
+        description: Search term to filter companies by name or legal name.
+        required: false
+        schema:
+          type: string
+      - name: pageSize
+        in: query
+        description: Number of companies to return per page.
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+      - name: sortBy
+        in: query
+        description: Field to sort companies by.
+        required: false
+        schema:
+          type: string
+          enum: [name, legalName, isDefault]
+      - name: isDefault
+        in: query
+        description: Filter companies by default status.
+        required: false
+        schema:
+          type: boolean
+    responses:
+      "200":
+        description: Companies successfully returned.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, links]
+              properties:
+                data:
+                  type: object
+                  required: [items, page]
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: "../components/schemas.yaml#/CompanySummary"
+                    page:
+                      $ref: "../components/schemas.yaml#/PageInfo"
+                links:
+                  type: object
+                  required: [self]
+                  properties:
+                    self:
+                      type: string
+                      format: uri
+                    next:
+                      type: string
+                      format: uri
+                      nullable: true
+                    prev:
+                      type: string
+                      format: uri
+                      nullable: true
+            examples:
+              default:
+                summary: Example with search and sorting applied
+                value:
+                  data:
+                    items:
+                      - id: cmp_123
+                        name: Company AB
+                        legalName: Company AB Sverige
+                        isDefault: true
+                        logoUrl: "https://cdn.qred.example.com/company-logos/cmp_123.png"
+                      - id: cmp_456
+                        name: Company XYZ
+                        legalName: Company XYZ Sverige
+                        isDefault: false
+                        logoUrl: "https://cdn.qred.example.com/company-logos/cmp_456.png"
+                    page:
+                      nextCursor: null
+                      pageSize: 2
+                      hasMore: false
+                  links:
+                    self: "https://api.qred.example.com/v1/companies?pageSize=2&search=company&sortBy=name"
+                    next: null
+                    prev: null
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../components/responses.yaml#/TooManyRequests"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+/v1/user/company-selection:
+  patch:
+    tags: [Companies]
+    operationId: updateCompanySelection
+    summary: Update the selected company for the current user/session.
+    description: Sets the active company context for the user (e.g., when switching companies in the UI).
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              companyId:
+                type: string
+                description: The company to select for the user.
+            required: [companyId]
+    responses:
+      "200":
+        description: Company selection updated.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                meta:
+                  $ref: "../components/schemas.yaml#/ResponseMeta"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../components/responses.yaml#/Forbidden"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "429":
+        $ref: "../components/responses.yaml#/TooManyRequests"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+      "503":
+        $ref: "../components/responses.yaml#/ServiceUnavailable"

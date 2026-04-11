@@ -1,0 +1,54 @@
+# Company-scoped resource endpoints
+/v1/companies/{companyId}/invoices/{invoiceId}:
+  get:
+    tags: [Dashboard]
+    operationId: getInvoiceById
+    summary: Get invoice details by invoice id for a company.
+    description: Returns the details for the specified invoice, scoped to the given company.
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+      - name: invoiceId
+        in: path
+        required: true
+        description: Unique identifier for the invoice.
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Invoice details returned.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/InvoiceDue"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"
+
+/v1/companies/{companyId}/remaining-spend:
+  get:
+    tags: [Dashboard]
+    operationId: getCompanyRemainingSpend
+    summary: Get remaining spend details for the selected company.
+    description: Returns the remaining spend section with detailed breakdown for the selected company.
+    parameters:
+      - $ref: "../components/parameters.yaml#/CompanyId"
+    responses:
+      "200":
+        description: Remaining spend details returned.
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas.yaml#/RemainingSpendSummary"
+      "400":
+        $ref: "../components/responses.yaml#/BadRequest"
+      "401":
+        $ref: "../components/responses.yaml#/Unauthorized"
+      "404":
+        $ref: "../components/responses.yaml#/NotFound"
+      "500":
+        $ref: "../components/responses.yaml#/InternalServerError"

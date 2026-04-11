@@ -1,0 +1,19 @@
+{
+  "name": "qred-api-contract",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "openapi:bundle": "mkdir -p openapi/dist && redocly bundle openapi/qred-api.yaml --output openapi/dist/openapi.bundle.yaml",
+    "mock": "npm run openapi:bundle && prism mock openapi/dist/openapi.bundle.yaml --host 0.0.0.0 --port 4010",
+    "mock:dynamic": "npm run openapi:bundle && prism mock openapi/dist/openapi.bundle.yaml --dynamic --host 0.0.0.0 --port 4010",
+    "docs:swagger": "npm run openapi:bundle && npx swagger-ui-watcher openapi/dist/openapi.bundle.yaml --port 8080",
+    "format": "prettier --write .",
+    "check-format": "prettier --check ."
+  },
+  "devDependencies": {
+    "@redocly/cli": "^2.26.0",
+    "@stoplight/prism-cli": "^5.14.2",
+    "prettier": "^3.8.2",
+    "swagger-ui-watcher": "^2.1.14"
+  }
+}
