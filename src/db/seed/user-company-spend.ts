@@ -1,5 +1,3 @@
-import { UserCompanySpend } from '../models';
-
 export const userCompanySpends = [
   {
     id: 'spend_usr_anna_cmp_123',

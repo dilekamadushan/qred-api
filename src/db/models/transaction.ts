@@ -1,12 +1,11 @@
-import {
+import type {
   CreationOptional,
-  DataTypes,
   ForeignKey,
   InferAttributes,
   InferCreationAttributes,
-  Model,
   Sequelize,
 } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 
 import type { Card } from './card';
 import type { Company } from './company';

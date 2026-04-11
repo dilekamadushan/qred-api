@@ -1,0 +1,5 @@
+dist/
+openapi/dist/
+node_modules/
+build/
+*.js
