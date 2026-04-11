@@ -24,6 +24,23 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns 200 if the service is up.
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
   /v1/dashboard:
     $ref: "./paths/dashboard.yaml#/~1v1~1dashboard"
   /v1/companies/{companyId}/card/default:

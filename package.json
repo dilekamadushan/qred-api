@@ -4,16 +4,36 @@
   "private": true,
   "scripts": {
     "openapi:bundle": "mkdir -p openapi/dist && redocly bundle openapi/qred-api.yaml --output openapi/dist/openapi.bundle.yaml",
+    "openapi:types": "npx openapi-typescript openapi/dist/openapi.bundle.yaml -o src/generated/openapi.ts",
+    "openapi:all": "npm run openapi:bundle && npm run openapi:types",
     "mock": "npm run openapi:bundle && prism mock openapi/dist/openapi.bundle.yaml --host 0.0.0.0 --port 4010",
     "mock:dynamic": "npm run openapi:bundle && prism mock openapi/dist/openapi.bundle.yaml --dynamic --host 0.0.0.0 --port 4010",
     "docs:swagger": "npm run openapi:bundle && npx swagger-ui-watcher openapi/dist/openapi.bundle.yaml --port 8080",
     "format": "prettier --write .",
-    "check-format": "prettier --check ."
+    "check-format": "prettier --check .",
+    "predev": "npm run openapi:all",
+    "dev": "nodemon --watch src --ext ts,js,json --exec tsx src/server.ts",
+    "prebuild": "npm run openapi:all",
+    "build": "tsc",
+    "prestart": "npm run openapi:all",
+    "start": "node dist/server.js"
   },
   "devDependencies": {
     "@redocly/cli": "^2.26.0",
     "@stoplight/prism-cli": "^5.14.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "nodemon": "^3.1.14",
+    "openapi-typescript": "^7.13.0",
     "prettier": "^3.8.2",
-    "swagger-ui-watcher": "^2.1.14"
+    "swagger-ui-watcher": "^2.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "express-openapi-validator": "^5.6.2",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^6.0.1"
   }
 }
