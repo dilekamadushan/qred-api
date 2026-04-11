@@ -206,18 +206,25 @@ InvoiceDue:
 
 RemainingSpendSummary:
   type: object
-  required: [spent, limit, remaining, utilizationPercent, label]
+  required: [spent, limit, remaining, utilizationPercent, currency, label]
   properties:
     spent:
-      $ref: "#/Money"
+      type: integer
+      description: Amount spent in minor units (e.g., ore for SEK).
     limit:
-      $ref: "#/Money"
+      type: integer
+      description: Credit limit in minor units (e.g., ore for SEK).
     remaining:
-      $ref: "#/Money"
+      type: integer
+      description: Remaining spend in minor units (e.g., ore for SEK).
     utilizationPercent:
       type: integer
       minimum: 0
       maximum: 100
+    currency:
+      type: string
+      pattern: "^[A-Z]{3}$"
+      description: ISO 4217 currency code (e.g., SEK).
     label:
       type: string
       example: based on your set limit

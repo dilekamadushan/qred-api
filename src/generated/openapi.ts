@@ -458,10 +458,15 @@ export interface components {
             amount: components["schemas"]["Money"];
         };
         RemainingSpendSummary: {
-            spent: components["schemas"]["Money"];
-            limit: components["schemas"]["Money"];
-            remaining: components["schemas"]["Money"];
+            /** @description Amount spent in minor units (e.g., ore for SEK). */
+            spent: number;
+            /** @description Credit limit in minor units (e.g., ore for SEK). */
+            limit: number;
+            /** @description Remaining spend in minor units (e.g., ore for SEK). */
+            remaining: number;
             utilizationPercent: number;
+            /** @description ISO 4217 currency code (e.g., SEK). */
+            currency: string;
             /** @example based on your set limit */
             label: string;
         };
