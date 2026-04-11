@@ -16,7 +16,9 @@
     "prebuild": "npm run openapi:all",
     "build": "tsc",
     "prestart": "npm run openapi:all",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "db:setup": "tsx src/db/sequelize.ts --force --seed",
+    "db:seed": "tsx src/db/seed/seed.ts"
   },
   "devDependencies": {
     "@redocly/cli": "^2.26.0",
