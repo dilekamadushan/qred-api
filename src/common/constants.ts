@@ -1,3 +1,7 @@
+export const SORT_ORDER = {
+  ASC: 'asc',
+  DESC: 'desc',
+} as const;
 // Common HTTP response status codes
 
 export const HTTP_STATUS = {
@@ -17,3 +21,5 @@ export const ERROR_CODES = {
   CIRCUIT_BREAKER_OPEN_CODE: 'CIRCUIT_OPEN',
   OPEN_API_VALIDATION_ERROR: 'format.openapi.validation',
 } as const;
+
+export const DEFAULT_PAGE_SIZE = 10;

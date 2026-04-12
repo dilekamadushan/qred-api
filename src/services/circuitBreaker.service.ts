@@ -60,3 +60,25 @@ export function createDbCircuitBreaker<TArgs extends unknown[], TResult>(
     },
   };
 }
+
+const sharedBreakerInternal = createDbCircuitBreaker(
+  async (action: () => Promise<unknown>) => action(),
+  {
+    timeout: 2500,
+    errorThresholdPercentage: 50,
+    resetTimeout: 5000,
+    volumeThreshold: 2,
+  }
+);
+
+export const sharedDbCircuitBreaker = {
+  execute<T>(action: () => Promise<T>): Promise<T> {
+    return sharedBreakerInternal.execute(action) as Promise<T>;
+  },
+  async reset() {
+    await sharedBreakerInternal.reset();
+  },
+  async updateOptions(nextOptions: Partial<DbCircuitBreakerOptions>) {
+    await sharedBreakerInternal.updateOptions(nextOptions);
+  },
+};

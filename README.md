@@ -134,3 +134,28 @@ This approach supports safe, maintainable growth as the API evolves and is ready
   - All `/api` routes are protected by authentication middleware. Integration tests verify that unauthenticated requests receive 401 responses.
 - **Test & Dev Auth:**
   - In test/dev, the middleware injects a fixed user for all requests, making integration tests and local development seamless.
+
+# Step 6: Transactions List Endpoint
+
+## Summary of Changes
+
+- Implemented `GET /v1/companies/{companyId}/transactions` with strict OpenAPI response shape:
+  - Supports `cursor`, `status`, `dateFrom`, `dateTo`, `pageSize`, `sortBy`, `sortOrder`, and `search`.
+  - Returns OpenAPI-compliant `TransactionListResponse` with `data.items`, `data.page`, and `links`.
+- Added robust cursor pagination:
+  - Opaque base64 cursor encoding/decoding using shared cursor utils.
+  - Stable ordering with deterministic tie-breaker on `id`.
+- Added full test coverage for transactions:
+  - Service unit tests for filtering, search, sorting, and cursor handling.
+  - Controller unit tests for query parsing and response building.
+  - Integration tests for filter/search/sort/date-range/cursor pagination and rate limiting.
+- Reused one shared database circuit breaker for both default card and transactions flows:
+  - Single shared breaker instance is now used across services.
+  - Existing service exports remain stable for compatibility in tests and route logic.
+
+## Motivation
+
+- **Consistency:** Align transactions behavior with the default card implementation quality bar.
+- **Contract safety:** Keep runtime behavior and tests strictly synchronized with OpenAPI.
+- **Resilience:** Reusing one shared DB circuit breaker centralizes protection under dependency failure.
+- **Maintainability:** Shared pagination and circuit-breaker patterns reduce duplication and drift.

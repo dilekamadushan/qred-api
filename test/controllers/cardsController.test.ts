@@ -35,10 +35,10 @@ describe('cardsController', () => {
       it('returns 200 and card', async () => {
         const card = {
           id: randomUUID(),
-          status: 'active',
+          status: 'active' as const,
           displayName: 'Main Card',
           maskedPan: '**** **** **** ' + Math.floor(1000 + Math.random() * 9000),
-          brand: 'visa',
+          brand: 'visa' as const,
           cardholderName: 'Anna Andersson',
           artworkUrl: 'https://cdn.qred.example.com/card-artwork/visa.png',
         };

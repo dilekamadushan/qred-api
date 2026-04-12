@@ -1,4 +1,24 @@
-// User info attached to req.user by auth middleware
+import type { components } from '../generated/openapi';
+
+export type TransactionSummary = components['schemas']['TransactionSummary'];
+export type PageInfo = components['schemas']['PageInfo'];
+export type TransactionListResponse = components['schemas']['TransactionListResponse'];
+export type CursorPayload = { createdAt: string; id: string };
+export type TransactionListData = TransactionListResponse['data'];
+export type SortBy = 'createdAt' | 'amount' | 'merchantName';
+export type SortOrder = 'asc' | 'desc';
+export type TransactionStatus = 'pending' | 'booked' | 'declined' | 'reversed';
+
+export type TransactionQueryOptions = {
+  cursor?: string;
+  status?: TransactionStatus;
+  dateFrom?: string;
+  dateTo?: string;
+  pageSize?: number;
+  sortBy?: SortBy;
+  sortOrder?: SortOrder;
+  search?: string;
+}; // User info attached to req.user by auth middleware
 export type User = {
   userId: string;
   [key: string]: unknown;
