@@ -101,3 +101,36 @@ This ensures your API contract and types are always up to date with your codebas
 # Step 4: ESLint Integration
 
 - For Consistent code quality for maintainability, collaboration, and reliability
+
+# Step 5: Default Card Endpoint
+
+## Summary of Changes
+
+- Implemented a production-grade `/v1/companies/:companyId/card/default` endpoint with:
+  - Controller and service layers for clear separation of concerns.
+  - Strict OpenAPI contract validation (using express-openapi-validator).
+  - ProblemDetails (RFC 7807) error responses for all error cases.
+  - Full unit and integration test coverage (Jest, Supertest).
+- Added robust resilience at the DB layer:
+  - HTTP request throttling with `express-rate-limit` (per user/IP).
+  - Database circuit breaker using `opossum` (prevents overload, returns 503 if dependency is down).
+  - Sequelize connection pooling for efficient resource usage.
+- Fixed OpenAPI schema bugs (e.g., ensured all `nullable` fields have a `type`).
+- Removed `additionalProperties: true` to enforce strict contract and type safety.
+- Updated all scripts to ensure lint, test, and build pass before deployment.
+
+## Motivation
+
+These changes ensure the API is robust, predictable, and easy to integrate with:
+
+- **Strict contract:** OpenAPI is the single source of truth, so clients and backend always agree on data shapes. Removing `additionalProperties: true` enforces this.
+- **Resilience:** Rate limiting and circuit breaker patterns protect the database and improve uptime, even under heavy load or dependency failures.
+- **Error handling:** ProblemDetails responses make error cases clear and machine-readable for clients.
+- **Test coverage:** Automated tests catch regressions and guarantee endpoint behavior.
+
+This approach supports safe, maintainable growth as the API evolves and is ready for production use.
+
+- **Global Authentication Enforcement:**
+  - All `/api` routes are protected by authentication middleware. Integration tests verify that unauthenticated requests receive 401 responses.
+- **Test & Dev Auth:**
+  - In test/dev, the middleware injects a fixed user for all requests, making integration tests and local development seamless.

@@ -1,5 +1,5 @@
-# Company-scoped resource endpoints
-/v1/companies/{companyId}/invoices/{invoiceId}:
+
+/api/v1/companies/{companyId}/invoices/{invoiceId}:
   get:
     tags: [Dashboard]
     operationId: getInvoiceById
@@ -29,7 +29,7 @@
       "500":
         $ref: "../components/responses.yaml#/InternalServerError"
 
-/v1/companies/{companyId}/remaining-spend:
+/api/v1/companies/{companyId}/remaining-spend:
   get:
     tags: [Dashboard]
     operationId: getCompanyRemainingSpend

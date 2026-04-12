@@ -7,11 +7,9 @@ import { initModels } from './models';
 import { seedDatabase } from './seed';
 
 const isTestEnvironment = process.env.NODE_ENV === 'test';
-const configuredStorage = process.env.DB_STORAGE;
 const defaultFileStorage = path.resolve(process.cwd(), '..', 'qred-data', 'qred.sqlite');
 
-export const databaseStorage =
-  configuredStorage ?? (isTestEnvironment ? ':memory:' : defaultFileStorage);
+export const databaseStorage = isTestEnvironment ? ':memory:' : defaultFileStorage;
 export const isInMemoryDatabase = databaseStorage === ':memory:';
 
 if (!isInMemoryDatabase) {
@@ -22,6 +20,13 @@ const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: databaseStorage,
   logging: false,
+  pool: {
+    max: 1,
+    min: 0,
+    idle: 10000,
+    acquire: 30000,
+    evict: 1000,
+  },
 });
 
 initModels(sequelize);

@@ -1,6 +1,6 @@
 ---
 # Transactions endpoints
-/v1/companies/{companyId}/transactions:
+/api/v1/companies/{companyId}/transactions:
   get:
     tags: [Transactions]
     operationId: listCompanyTransactions

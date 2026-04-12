@@ -1,13 +1,25 @@
-import express, { type NextFunction, type Request, type Response } from 'express';
-import healthRouter from './routes/health';
+import cors from 'cors';
+import { errorLogger, requestLogger } from './middleware/requestLogger';
+import express from 'express';
 import path from 'path';
+
 import { middleware as openApiValidator } from 'express-openapi-validator';
 
+import { authMiddleware } from './middleware/authMiddleware';
+import v1Router from './routes/v1/v1.route';
+import healthRouter from './routes/health.route';
+
+import { notFoundHandler } from './middleware/notFoundHandler';
+import { errorHandler } from './middleware/errorHandler';
+import { openApiErrorLogger } from './middleware/openApiErrorLogger';
+
 const app = express();
+
+// Core middleware
 app.use(express.json());
+app.use(cors());
 
-app.use(healthRouter);
-
+// OpenAPI validation
 const apiSpecPath = path.join(__dirname, '../openapi/dist/openapi.bundle.yaml');
 app.use(
   openApiValidator({
@@ -17,24 +29,27 @@ app.use(
   })
 );
 
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({
-    error: 'Not found',
-  });
-});
+app.use(requestLogger);
 
-app.use(
-  (
-    err: Error & { status?: number; errors?: unknown },
-    _req: Request,
-    res: Response,
-    _next: NextFunction
-  ) => {
-    res.status(err.status ?? 500).json({
-      message: err.message,
-      errors: err.errors,
-    });
-  }
-);
+// Health route should be public (no auth)
+app.use(healthRouter);
+
+// Authentication middleware (sets req.user)
+app.use(authMiddleware);
+
+// Protected routes (all v1 API routes)
+app.use('/api/v1', v1Router);
+
+// 404 handler
+app.use(notFoundHandler);
+
+// OpenAPI validator error logging middleware
+app.use(openApiErrorLogger);
+
+// Error logging middleware
+app.use(errorLogger);
+
+// Error handler
+app.use(errorHandler);
 
 export default app;

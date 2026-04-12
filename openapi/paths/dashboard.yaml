@@ -1,5 +1,5 @@
 # Dashboard endpoints
-/v1/dashboard:
+/api/v1/dashboard:
   get:
     tags: [Dashboard]
     operationId: getDashboard

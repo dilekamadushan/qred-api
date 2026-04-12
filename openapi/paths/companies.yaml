@@ -1,6 +1,6 @@
----
+
 # Companies endpoints
-/v1/companies:
+/api/v1/companies:
   get:
     tags: [Companies]
     operationId: listCompanies
@@ -100,7 +100,7 @@
       "500":
         $ref: "../components/responses.yaml#/InternalServerError"
 
-/v1/user/company-selection:
+/api/v1/user/company-selection:
   patch:
     tags: [Companies]
     operationId: updateCompanySelection

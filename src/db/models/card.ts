@@ -75,6 +75,7 @@ export function initCardModel(sequelize: Sequelize): typeof Card {
       artworkUrl: {
         type: DataTypes.STRING,
         allowNull: false,
+        defaultValue: 'https://example.com/card-artwork.png',
       },
       status: {
         type: DataTypes.ENUM(...cardStatuses),
