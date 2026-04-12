@@ -24,8 +24,6 @@ const mockResponse = (): Response => {
   return res as Response;
 };
 
-const mockNext = jest.fn();
-
 describe('invoicesController', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -51,7 +49,7 @@ describe('invoicesController', () => {
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getLatestInvoice(req, res, mockNext);
+        await getLatestInvoice(req, res);
 
         expect(InvoiceService.getLatestInvoiceForCompany).toHaveBeenCalledWith('cmp_123');
         expect(res.json).toHaveBeenCalledWith({
@@ -71,7 +69,7 @@ describe('invoicesController', () => {
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getLatestInvoice(req, res, mockNext);
+        await getLatestInvoice(req, res);
 
         expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
         expect(res.type).toHaveBeenCalledWith('application/problem+json');
@@ -84,35 +82,25 @@ describe('invoicesController', () => {
     });
 
     describe('when the circuit breaker is open', () => {
-      it('returns 503 problem details', async () => {
-        jest.spyOn(InvoiceService, 'getLatestInvoiceForCompany').mockImplementation(() => {
-          throw new DbCircuitOpenError();
-        });
+      it('propagates the error to middleware', async () => {
+        jest
+          .spyOn(InvoiceService, 'getLatestInvoiceForCompany')
+          .mockRejectedValue(new DbCircuitOpenError());
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getLatestInvoice(req, res, mockNext);
-
-        expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.SERVICE_UNAVAILABLE);
-        expect(res.type).toHaveBeenCalledWith('application/problem+json');
-        expect(res.json).toHaveBeenCalled();
-        // @ts-expect-error: mock property is added by jest
-        const errorPayload = res.json.mock.calls[0][0];
-        expect(errorPayload.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
-        expect(errorPayload.code).toBe('service_unavailable');
+        await expect(getLatestInvoice(req, res)).rejects.toBeInstanceOf(DbCircuitOpenError);
       });
     });
 
     describe('when an unexpected error occurs', () => {
-      it('calls next(error)', async () => {
+      it('propagates the error to middleware', async () => {
         const error = new Error('unexpected');
         jest.spyOn(InvoiceService, 'getLatestInvoiceForCompany').mockRejectedValue(error);
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getLatestInvoice(req, res, mockNext);
-
-        expect(mockNext).toHaveBeenCalledWith(error);
+        await expect(getLatestInvoice(req, res)).rejects.toThrow('unexpected');
       });
     });
   });

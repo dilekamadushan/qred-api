@@ -1,46 +1,29 @@
 import { HTTP_STATUS } from '../common/constants';
-import type { NextFunction, Request, Response } from 'express';
-import { createProblemDetails, sendProblemDetails } from '../common/utils/problem-details';
+import type { Request, Response } from 'express';
 import { getTransactionsForCompany } from '../services/transactions.service';
-import { buildTransactionQueryOptions } from '../utils/transactions';
-import { buildPaginationLinks } from '../utils/pagination';
-import { DbCircuitOpenError } from '../services/circuitBreaker.service';
+import { buildTransactionQueryOptions } from '../common/utils/transactions';
+import { buildPaginationLinks } from '../common/utils/pagination';
 import type { components } from '../generated/openapi';
 
 type TransactionListResponse = components['schemas']['TransactionListResponse'];
 
-export async function getTransactions(request: Request, res: Response, next: NextFunction) {
-  try {
-    const companyId = request.params.companyId;
-    const userId = request.user!.userId;
-    const queryOptions = buildTransactionQueryOptions(request.query);
+export async function getTransactions(request: Request, res: Response) {
+  // Errors are intentionally forwarded to the global error handler middleware
+  const companyId = request.params.companyId;
+  const userId = request.user!.userId;
+  const queryOptions = buildTransactionQueryOptions(request.query);
 
-    const data = await getTransactionsForCompany(companyId as string, userId, queryOptions);
+  const data = await getTransactionsForCompany(companyId as string, userId, queryOptions);
 
-    const { self, next } = buildPaginationLinks(request, data.page);
+  const { self, next: nextLink } = buildPaginationLinks(request, data.page);
 
-    const responseBody: TransactionListResponse = {
-      data,
-      links: {
-        self,
-        next,
-      },
-    };
+  const responseBody: TransactionListResponse = {
+    data,
+    links: {
+      self,
+      next: nextLink,
+    },
+  };
 
-    return res.status(HTTP_STATUS.OK).json(responseBody);
-  } catch (error) {
-    if (error instanceof DbCircuitOpenError)
-      return sendProblemDetails(
-        res,
-        createProblemDetails({
-          req: request,
-          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
-          title: 'Service unavailable',
-          detail:
-            'The transaction data dependency is temporarily unavailable. Please retry shortly.',
-          code: 'service_unavailable',
-        })
-      );
-    next(error);
-  }
+  return res.status(HTTP_STATUS.OK).json(responseBody);
 }

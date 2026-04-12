@@ -31,11 +31,6 @@ export function initModels(sequelize: Sequelize) {
   initTransactionModel(sequelize);
   initUserCompanySpendModel(sequelize);
 
-  User.belongsTo(Company, {
-    foreignKey: 'selectedCompanyId',
-    as: 'selectedCompany',
-  });
-
   User.belongsToMany(Company, {
     through: UserCompanyMembership,
     foreignKey: 'userId',
@@ -58,6 +53,16 @@ export function initModels(sequelize: Sequelize) {
   Company.hasMany(UserCompanyMembership, {
     foreignKey: 'companyId',
     as: 'memberships',
+  });
+
+  UserCompanyMembership.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+  });
+
+  UserCompanyMembership.belongsTo(Company, {
+    foreignKey: 'companyId',
+    as: 'company',
   });
 
   Company.hasMany(Card, {

@@ -8,7 +8,7 @@ DashboardSection:
       type: object
       nullable: true
       description: Section data, present on success.
-      # ...existing code...
+      additionalProperties: true
     error:
       type: string
       nullable: true
@@ -20,7 +20,7 @@ DashboardResponse:
   properties:
     data:
       type: object
-      required: [company, card, invoice, spend, transactions, viewMore]
+      required: [company, card, spend, transactions, viewMore]
       properties:
         company:
           allOf:
@@ -61,25 +61,6 @@ DashboardResponse:
                   format: uri
                   description: Card image URL for dashboard display.
                   example: "https://cdn.qred.example.com/card-artwork/visa.png"
-        invoice:
-          allOf:
-            - $ref: "#/DashboardSection"
-          properties:
-            value:
-              type: object
-              required: [id, status, dueDate]
-              properties:
-                id:
-                  type: string
-                  example: inv_456
-                status:
-                  type: string
-                  enum: [due, paid]
-                  example: due
-                dueDate:
-                  type: string
-                  format: date
-                  example: "2026-05-01"
         spend:
           allOf:
             - $ref: "#/DashboardSection"
@@ -143,7 +124,7 @@ DashboardResponse:
 
 CompanySummary:
   type: object
-  required: [id, name, legalName, isDefault, logoUrl]
+  required: [id, name, legalName, isSelected, logoUrl]
   properties:
     id:
       type: string
@@ -154,7 +135,7 @@ CompanySummary:
     legalName:
       type: string
       example: Company AB Sverige
-    isDefault:
+    isSelected:
       type: boolean
       example: true
     logoUrl:

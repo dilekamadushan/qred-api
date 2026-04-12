@@ -106,4 +106,59 @@ describe('TransactionService', () => {
       );
     });
   });
+
+  describe('getTransactionPreviewForCompany', () => {
+    it('returns preview items and remaining count', async () => {
+      (Transaction.findAll as jest.Mock).mockResolvedValueOnce([
+        createMockTransaction({
+          id: 'txn_preview_1',
+          description: 'Coffee purchase',
+          amountMinor: 4500,
+          createdAt: new Date('2026-04-10T10:16:05.000Z'),
+          merchantUrl: 'https://app.qred.example.com/transactions/txn_preview_1',
+        }),
+      ]);
+      (Transaction.count as jest.Mock).mockResolvedValueOnce(4);
+
+      const result = await TransactionService.getTransactionPreviewForCompany(
+        'cmp_123',
+        'user_123',
+        3
+      );
+
+      expect(result).toEqual({
+        items: [
+          {
+            id: 'txn_preview_1',
+            description: 'Coffee purchase',
+            amount: 45,
+            createdAt: '2026-04-10T10:16:05.000Z',
+            merchantUrl: 'https://app.qred.example.com/transactions/txn_preview_1',
+          },
+        ],
+        remainingTransactions: 3,
+      });
+    });
+
+    it('queries preview transactions for company and user with limit', async () => {
+      (Transaction.findAll as jest.Mock).mockResolvedValueOnce([]);
+      (Transaction.count as jest.Mock).mockResolvedValueOnce(0);
+
+      await TransactionService.getTransactionPreviewForCompany('cmp_123', 'user_123', 2);
+
+      expect(Transaction.findAll).toHaveBeenCalledWith({
+        where: { companyId: 'cmp_123', userId: 'user_123' },
+        attributes: ['id', 'description', 'amountMinor', 'createdAt', 'merchantUrl'],
+        order: [
+          ['createdAt', 'DESC'],
+          ['id', 'DESC'],
+        ],
+        limit: 2,
+        raw: true,
+      });
+      expect(Transaction.count).toHaveBeenCalledWith({
+        where: { companyId: 'cmp_123', userId: 'user_123' },
+      });
+    });
+  });
 });

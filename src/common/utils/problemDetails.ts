@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 
 import type { Request, Response } from 'express';
-import type { InvalidField, ProblemDetails } from '../../common/types';
+import type { InvalidField, ProblemDetails } from '../types/types';
 
 export function createProblemDetails({
   req,

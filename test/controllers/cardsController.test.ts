@@ -23,7 +23,6 @@ const mockResponse = (): Response => {
   res.json = jest.fn().mockReturnValue(res);
   return res as unknown as Response;
 };
-const mockNext = jest.fn();
 
 describe('cardsController', () => {
   describe('getDefaultCard', () => {
@@ -46,7 +45,7 @@ describe('cardsController', () => {
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getDefaultCard(req, res, mockNext);
+        await getDefaultCard(req, res);
 
         expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
         expect(res.json).toHaveBeenCalledWith(card);
@@ -59,7 +58,7 @@ describe('cardsController', () => {
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getDefaultCard(req, res, mockNext);
+        await getDefaultCard(req, res);
 
         expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
         expect(res.json).toHaveBeenCalled();
@@ -71,32 +70,25 @@ describe('cardsController', () => {
     });
 
     describe('when circuit breaker is open', () => {
-      it('returns 503', async () => {
-        jest.spyOn(CardService, 'getDefaultCardForCompany').mockImplementation(() => {
-          throw new DbCircuitOpenError();
-        });
+      it('propagates the error to middleware', async () => {
+        jest
+          .spyOn(CardService, 'getDefaultCardForCompany')
+          .mockRejectedValue(new DbCircuitOpenError());
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getDefaultCard(req, res, mockNext);
-
-        // @ts-expect-error: mock property is added by jest
-        expect(res.json.mock.calls[0][0].status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
-        // @ts-expect-error: mock property is added by jest
-        expect(res.json.mock.calls[0][0].code).toBe('service_unavailable');
+        await expect(getDefaultCard(req, res)).rejects.toBeInstanceOf(DbCircuitOpenError);
       });
     });
 
     describe('when an unexpected error occurs', () => {
-      it('calls next(err)', async () => {
+      it('propagates the error to middleware', async () => {
         const error = new Error('unexpected');
         jest.spyOn(CardService, 'getDefaultCardForCompany').mockRejectedValue(error);
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getDefaultCard(req, res, mockNext);
-
-        expect(mockNext).toHaveBeenCalledWith(error);
+        await expect(getDefaultCard(req, res)).rejects.toThrow('unexpected');
       });
     });
   });

@@ -3,6 +3,7 @@ import type {
   ForeignKey,
   InferAttributes,
   InferCreationAttributes,
+  NonAttribute,
   Sequelize,
 } from 'sequelize';
 import { DataTypes, Model } from 'sequelize';
@@ -18,9 +19,11 @@ export class UserCompanyMembership extends Model<
   declare userId: ForeignKey<User['id']>;
   declare companyId: ForeignKey<Company['id']>;
   declare role: 'owner' | 'member';
-  declare isDefault: CreationOptional<boolean>;
+  declare isSelected: CreationOptional<boolean>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+
+  declare company?: NonAttribute<Company>;
 }
 
 export function initUserCompanyMembershipModel(sequelize: Sequelize): typeof UserCompanyMembership {
@@ -55,7 +58,7 @@ export function initUserCompanyMembershipModel(sequelize: Sequelize): typeof Use
         allowNull: false,
         defaultValue: 'owner',
       },
-      isDefault: {
+      isSelected: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
@@ -84,12 +87,12 @@ export function initUserCompanyMembershipModel(sequelize: Sequelize): typeof Use
           name: 'user_company_memberships_company_idx',
           fields: ['companyId'],
         },
-        // Enforce only one default membership
+        // Enforce only one selected membership
         {
           unique: true,
           fields: ['userId'],
-          where: { isDefault: true },
-          name: 'unique_default_membership_per_user',
+          where: { isSelected: true },
+          name: 'unique_selected_membership_per_user',
         },
       ],
     }

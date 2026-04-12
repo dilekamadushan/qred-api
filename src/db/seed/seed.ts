@@ -35,7 +35,6 @@ const users = [
     username: 'anna',
     firstName: 'Anna',
     lastName: 'Andersson',
-    selectedCompanyId: uuid.cmp1,
   },
 ];
 
@@ -64,14 +63,14 @@ const memberships = [
     userId: uuid.anna,
     companyId: uuid.cmp1,
     role: 'owner' as const,
-    isDefault: true,
+    isSelected: true,
   },
   {
     id: uuid.mem_anna_cmp2,
     userId: uuid.anna,
     companyId: uuid.cmp2,
     role: 'member' as const,
-    isDefault: false,
+    isSelected: false,
   },
 ];
 

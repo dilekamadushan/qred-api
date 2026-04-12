@@ -28,10 +28,10 @@
         required: false
         schema:
           type: string
-          enum: [name, legalName, isDefault]
-      - name: isDefault
+          enum: [name, legalName, isSelected]
+      - name: isSelected
         in: query
-        description: Filter companies by default status.
+        description: Filter companies by selected status.
         required: false
         schema:
           type: boolean
@@ -78,12 +78,12 @@
                       - id: cmp_123
                         name: Company AB
                         legalName: Company AB Sverige
-                        isDefault: true
+                        isSelected: true
                         logoUrl: "https://cdn.qred.example.com/company-logos/cmp_123.png"
                       - id: cmp_456
                         name: Company XYZ
                         legalName: Company XYZ Sverige
-                        isDefault: false
+                        isSelected: false
                         logoUrl: "https://cdn.qred.example.com/company-logos/cmp_456.png"
                     page:
                       nextCursor: null

@@ -1,15 +1,16 @@
 import type { WhereOptions } from 'sequelize';
 import { Op } from 'sequelize';
-import type { GenericError } from '../common/types';
+import type { GenericError } from '../common/types/types';
 import type {
   CursorPayload,
   PageInfo,
   TransactionListData,
   TransactionQueryOptions,
   TransactionSummary,
-} from '../common/types';
+} from '../common/types/types';
+import type { components } from '../generated/openapi';
 import { Transaction } from '../db/models/transaction';
-import { decodeCursor, encodeCursor } from '../common/utils/cursor';
+import { decodeCursor, encodeCursor } from '../common/utils/pagination';
 import { sharedDbCircuitBreaker } from './circuitBreaker.service';
 import { logError, logWarn } from '../common/utils/logUtils';
 import { DEFAULT_PAGE_SIZE, ERROR_CODES, SORT_ORDER } from '../common/constants';
@@ -59,6 +60,14 @@ function buildPaginationClause(decoded: CursorPayload, sortOrder: string) {
 }
 
 type TransactionRaw = InferAttributes<TransactionModel>;
+type TransactionPreviewValue =
+  components['schemas']['DashboardResponse']['data']['transactions']['value'];
+type TransactionPreviewItem = NonNullable<TransactionPreviewValue>['items'][number];
+
+export type TransactionPreviewResult = {
+  items: TransactionPreviewItem[];
+  remainingTransactions: number;
+};
 
 function mapTransactionToSummary(transaction: TransactionRaw): TransactionSummary {
   return {
@@ -71,6 +80,10 @@ function mapTransactionToSummary(transaction: TransactionRaw): TransactionSummar
     status: transaction.status,
     merchantUrl: transaction.merchantUrl,
   };
+}
+
+function toDashboardAmount(amountMinor: number): number {
+  return Number((amountMinor / 100).toFixed(2));
 }
 
 async function queryTransactions(
@@ -142,6 +155,47 @@ async function queryTransactions(
   }
 }
 
+async function queryTransactionPreview(
+  companyId: string,
+  userId: string,
+  previewLimit: number
+): Promise<TransactionPreviewResult> {
+  try {
+    const where = { companyId, userId };
+    const [transactions, totalCount] = await Promise.all([
+      Transaction.findAll({
+        where,
+        attributes: ['id', 'description', 'amountMinor', 'createdAt', 'merchantUrl'],
+        order: [
+          ['createdAt', 'DESC'],
+          ['id', 'DESC'],
+        ],
+        limit: previewLimit,
+        raw: true,
+      }),
+      Transaction.count({ where }),
+    ]);
+
+    return {
+      items: transactions.map((transaction) => ({
+        id: transaction.id,
+        description: transaction.description,
+        amount: toDashboardAmount(transaction.amountMinor),
+        createdAt: new Date(transaction.createdAt).toISOString(),
+        merchantUrl: transaction.merchantUrl,
+      })),
+      remainingTransactions: Math.max(totalCount - transactions.length, 0),
+    };
+  } catch (error) {
+    logError(
+      'TransactionService',
+      `Error querying transaction preview for companyId: ${companyId}`,
+      error
+    );
+    throw error;
+  }
+}
+
 export const transactionsCircuitBreaker = sharedDbCircuitBreaker;
 
 export async function getTransactionsForCompany(
@@ -152,6 +206,26 @@ export async function getTransactionsForCompany(
   try {
     return await transactionsCircuitBreaker.execute(() =>
       queryTransactions(companyId, userId, options)
+    );
+  } catch (error) {
+    const err = error as GenericError;
+    if (err.code === ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE) {
+      logWarn('TransactionService', `Circuit breaker is OPEN for companyId: ${companyId}`);
+    } else {
+      logError('TransactionService', `Database error for companyId: ${companyId}`, error);
+    }
+    throw error;
+  }
+}
+
+export async function getTransactionPreviewForCompany(
+  companyId: string,
+  userId: string,
+  previewLimit: number
+): Promise<TransactionPreviewResult> {
+  try {
+    return await transactionsCircuitBreaker.execute(() =>
+      queryTransactionPreview(companyId, userId, previewLimit)
     );
   } catch (error) {
     const err = error as GenericError;

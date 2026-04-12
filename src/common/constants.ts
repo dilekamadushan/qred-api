@@ -20,6 +20,15 @@ export const HTTP_STATUS = {
 export const ERROR_CODES = {
   CIRCUIT_BREAKER_OPEN_CODE: 'CIRCUIT_OPEN',
   OPEN_API_VALIDATION_ERROR: 'format.openapi.validation',
+  VALIDATION_ERROR: 'validation_error',
+  INTERNAL_SERVER_ERROR: 'internal_server_error',
 } as const;
 
 export const DEFAULT_PAGE_SIZE = 10;
+
+export const CARD_STATUS = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
+  BLOCKED: 'blocked',
+  CLOSED: 'closed',
+} as const;

@@ -1,4 +1,4 @@
-import type { User } from '../common/types';
+import type { User } from './types';
 
 declare module 'express-serve-static-core' {
   interface Request {

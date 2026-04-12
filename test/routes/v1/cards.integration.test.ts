@@ -24,7 +24,6 @@ const testUser = {
   username: 'testuser',
   firstName: 'Test',
   lastName: 'User',
-  selectedCompanyId: companyId,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -34,7 +33,6 @@ const otherUser = {
   username: 'notanna',
   firstName: 'Not',
   lastName: 'Anna',
-  selectedCompanyId: companyId,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -43,7 +41,7 @@ const testMembership = {
   userId,
   companyId,
   role: 'owner' as const,
-  isDefault: true,
+  isSelected: true,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -52,7 +50,7 @@ const otherMembership = {
   userId: 'not-anna',
   companyId,
   role: 'member' as const,
-  isDefault: false,
+  isSelected: false,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

@@ -56,8 +56,8 @@ export interface paths {
         /**
          * Get the mobile dashboard for the authenticated user’s selected company.
          * @description Returns all data required to render the main dashboard screen in a single
-         *     request, including card summary, invoice due, remaining spend, and a preview
-         *     of the latest transactions.
+         *     request, including card summary, remaining spend, and a preview
+         *     of the latest transactions. (Invoice details are not included.)
          *
          *     This endpoint is an aggregated read model. The backend fetches data from multiple services in parallel, with timeouts and fallbacks. If some sections are unavailable, the API returns partial data with per-section status, allowing the UI to render what is available immediately and show loading/error states for missing sections. This keeps the UX fast and resilient, while still supporting granular endpoints for advanced flows.
          */
@@ -277,7 +277,9 @@ export interface components {
         /** @description A dashboard section. If value is present, the section loaded successfully. If error is present, the section failed to load. Only one of value or error should be present. */
         DashboardSection: {
             /** @description Section data, present on success. */
-            value?: Record<string, never> | null;
+            value?: {
+                [key: string]: unknown;
+            } | null;
             /** @description Error message if the section failed to load. */
             error?: string | null;
         };
@@ -311,22 +313,6 @@ export interface components {
                          * @example https://cdn.qred.example.com/card-artwork/visa.png
                          */
                         artworkUrl: string | null;
-                    };
-                } & components["schemas"]["DashboardSection"];
-                invoice: {
-                    value?: {
-                        /** @example inv_456 */
-                        id: string;
-                        /**
-                         * @example due
-                         * @enum {string}
-                         */
-                        status: "due" | "paid";
-                        /**
-                         * Format: date
-                         * @example 2026-05-01
-                         */
-                        dueDate: string;
                     };
                 } & components["schemas"]["DashboardSection"];
                 spend: {
@@ -427,7 +413,7 @@ export interface components {
             /** @example Company AB Sverige */
             legalName: string;
             /** @example true */
-            isDefault: boolean;
+            isSelected: boolean;
             /**
              * Format: uri
              * @description URL for the company logo image.
@@ -726,9 +712,9 @@ export interface operations {
                 /** @description Number of companies to return per page. */
                 pageSize?: number;
                 /** @description Field to sort companies by. */
-                sortBy?: "name" | "legalName" | "isDefault";
-                /** @description Filter companies by default status. */
-                isDefault?: boolean;
+                sortBy?: "name" | "legalName" | "isSelected";
+                /** @description Filter companies by selected status. */
+                isSelected?: boolean;
             };
             header?: never;
             path?: never;
