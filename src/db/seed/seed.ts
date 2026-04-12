@@ -7,33 +7,52 @@ import {
   UserCompanyMembership,
   UserCompanySpend,
 } from '../models';
-import { userCompanySpends } from './user-company-spend';
+
+// Predefined UUIDs for consistency
+export const uuid = {
+  anna: '00000000-0000-0000-0000-000000000001',
+  cmp1: '11111111-1111-1111-1111-111111111111',
+  cmp2: '22222222-2222-2222-2222-222222222222',
+  mem_anna_cmp1: '33333333-3333-3333-3333-333333333333',
+  mem_anna_cmp2: '44444444-4444-4444-4444-444444444444',
+  card1: '55555555-5555-5555-5555-555555555555',
+  card2: '66666666-6666-6666-6666-666666666666',
+  card3: '77777777-7777-7777-7777-777777777777',
+  inv1: '88888888-8888-8888-8888-888888888888',
+  inv2: '99999999-9999-9999-9999-999999999999',
+  txn1: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  txn2: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+  txn3: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+  txn4: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+  txn5: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+  txn6: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+};
 
 const users = [
   {
-    id: 'usr_anna',
+    id: uuid.anna,
     email: 'anna.andersson@qred.example.com',
     username: 'anna',
     firstName: 'Anna',
     lastName: 'Andersson',
-    selectedCompanyId: 'cmp_123',
+    selectedCompanyId: uuid.cmp1,
   },
 ];
 
 const companies = [
   {
-    id: 'cmp_123',
+    id: uuid.cmp1,
     name: 'Company AB',
     legalName: 'Company AB Sverige',
-    logoUrl: 'https://cdn.qred.example.com/company-logos/cmp_123.png',
+    logoUrl: `https://cdn.qred.example.com/company-logos/${uuid.cmp1}.png`,
     creditLimitMinor: 500000,
     currency: 'SEK',
   },
   {
-    id: 'cmp_456',
+    id: uuid.cmp2,
     name: 'Company XYZ',
     legalName: 'Company XYZ Sverige',
-    logoUrl: 'https://cdn.qred.example.com/company-logos/cmp_456.png',
+    logoUrl: `https://cdn.qred.example.com/company-logos/${uuid.cmp2}.png`,
     creditLimitMinor: 750000,
     currency: 'SEK',
   },
@@ -41,16 +60,16 @@ const companies = [
 
 const memberships = [
   {
-    id: 'mem_usr_anna_cmp_123',
-    userId: 'usr_anna',
-    companyId: 'cmp_123',
+    id: uuid.mem_anna_cmp1,
+    userId: uuid.anna,
+    companyId: uuid.cmp1,
     role: 'owner' as const,
     isDefault: true,
   },
   {
-    id: 'mem_usr_anna_cmp_456',
-    userId: 'usr_anna',
-    companyId: 'cmp_456',
+    id: uuid.mem_anna_cmp2,
+    userId: uuid.anna,
+    companyId: uuid.cmp2,
     role: 'member' as const,
     isDefault: false,
   },
@@ -58,13 +77,13 @@ const memberships = [
 
 const cards = [
   {
-    id: 'card_987',
-    companyId: 'cmp_123',
-    userId: 'usr_anna',
+    id: uuid.card1,
+    companyId: uuid.cmp1,
+    userId: uuid.anna,
     displayName: 'Main Card',
     maskedPan: '**** **** **** 1234',
     brand: 'visa' as const,
-    cardholderName: 'Anna Andersson', // Optionally: users[0].firstName + ' ' + users[0].lastName
+    cardholderName: 'Anna Andersson',
     artworkUrl: 'https://cdn.qred.example.com/card-artwork/visa.png',
     status: 'active' as const,
     isDefault: true,
@@ -72,9 +91,9 @@ const cards = [
     blockedAt: null,
   },
   {
-    id: 'card_654',
-    companyId: 'cmp_123',
-    userId: 'usr_anna',
+    id: uuid.card2,
+    companyId: uuid.cmp1,
+    userId: uuid.anna,
     displayName: 'Travel Card',
     maskedPan: '**** **** **** 5678',
     brand: 'mastercard' as const,
@@ -86,9 +105,9 @@ const cards = [
     blockedAt: new Date('2026-04-05T10:00:00Z'),
   },
   {
-    id: 'card_321',
-    companyId: 'cmp_456',
-    userId: 'usr_anna',
+    id: uuid.card3,
+    companyId: uuid.cmp2,
+    userId: uuid.anna,
     displayName: 'Main Card',
     maskedPan: '**** **** **** 4321',
     brand: 'visa' as const,
@@ -103,8 +122,8 @@ const cards = [
 
 const invoices = [
   {
-    id: 'inv_456',
-    companyId: 'cmp_123',
+    id: uuid.inv1,
+    companyId: uuid.cmp1,
     label: 'Invoice due',
     dueDate: '2026-05-01',
     amountMinor: 125000,
@@ -114,8 +133,8 @@ const invoices = [
     paidAt: null,
   },
   {
-    id: 'inv_789',
-    companyId: 'cmp_456',
+    id: uuid.inv2,
+    companyId: uuid.cmp2,
     label: 'Invoice due',
     dueDate: '2026-04-15',
     amountMinor: 95000,
@@ -128,9 +147,9 @@ const invoices = [
 
 const transactions = [
   {
-    id: 'txn_001',
-    companyId: 'cmp_123',
-    cardId: 'card_987',
+    id: uuid.txn1,
+    companyId: uuid.cmp1,
+    cardId: uuid.card1,
     createdAt: new Date('2026-04-10T10:16:05Z'),
     merchantName: 'Espresso House',
     description: 'Coffee purchase',
@@ -139,12 +158,12 @@ const transactions = [
     currency: 'SEK',
     direction: 'debit' as const,
     status: 'booked' as const,
-    merchantUrl: 'https://app.qred.example.com/transactions/txn_001',
+    merchantUrl: `https://app.qred.example.com/transactions/${uuid.txn1}`,
   },
   {
-    id: 'txn_002',
-    companyId: 'cmp_123',
-    cardId: 'card_987',
+    id: uuid.txn2,
+    companyId: uuid.cmp1,
+    cardId: uuid.card1,
     createdAt: new Date('2026-04-09T12:30:00Z'),
     merchantName: 'Lunch Bar',
     description: 'Lunch',
@@ -153,12 +172,12 @@ const transactions = [
     currency: 'SEK',
     direction: 'debit' as const,
     status: 'booked' as const,
-    merchantUrl: 'https://app.qred.example.com/transactions/txn_002',
+    merchantUrl: `https://app.qred.example.com/transactions/${uuid.txn2}`,
   },
   {
-    id: 'txn_003',
-    companyId: 'cmp_123',
-    cardId: 'card_654',
+    id: uuid.txn3,
+    companyId: uuid.cmp1,
+    cardId: uuid.card2,
     createdAt: new Date('2026-04-08T08:15:00Z'),
     merchantName: 'Taxi Stockholm',
     description: 'Taxi',
@@ -167,12 +186,12 @@ const transactions = [
     currency: 'SEK',
     direction: 'debit' as const,
     status: 'booked' as const,
-    merchantUrl: 'https://app.qred.example.com/transactions/txn_003',
+    merchantUrl: `https://app.qred.example.com/transactions/${uuid.txn3}`,
   },
   {
-    id: 'txn_004',
-    companyId: 'cmp_123',
-    cardId: 'card_987',
+    id: uuid.txn4,
+    companyId: uuid.cmp1,
+    cardId: uuid.card1,
     createdAt: new Date('2026-04-07T09:10:00Z'),
     merchantName: 'Office Depot',
     description: 'Office supplies',
@@ -181,12 +200,12 @@ const transactions = [
     currency: 'SEK',
     direction: 'debit' as const,
     status: 'pending' as const,
-    merchantUrl: 'https://app.qred.example.com/transactions/txn_004',
+    merchantUrl: `https://app.qred.example.com/transactions/${uuid.txn4}`,
   },
   {
-    id: 'txn_005',
-    companyId: 'cmp_456',
-    cardId: 'card_321',
+    id: uuid.txn5,
+    companyId: uuid.cmp2,
+    cardId: uuid.card3,
     createdAt: new Date('2026-04-06T15:45:00Z'),
     merchantName: 'Hotel Nord',
     description: 'Hotel booking',
@@ -195,12 +214,12 @@ const transactions = [
     currency: 'SEK',
     direction: 'debit' as const,
     status: 'declined' as const,
-    merchantUrl: 'https://app.qred.example.com/transactions/txn_005',
+    merchantUrl: `https://app.qred.example.com/transactions/${uuid.txn5}`,
   },
   {
-    id: 'txn_006',
-    companyId: 'cmp_456',
-    cardId: 'card_321',
+    id: uuid.txn6,
+    companyId: uuid.cmp2,
+    cardId: uuid.card3,
     createdAt: new Date('2026-04-05T11:20:00Z'),
     merchantName: 'Refund Store',
     description: 'Refund',
@@ -209,7 +228,30 @@ const transactions = [
     currency: 'SEK',
     direction: 'credit' as const,
     status: 'reversed' as const,
-    merchantUrl: 'https://app.qred.example.com/transactions/txn_006',
+    merchantUrl: `https://app.qred.example.com/transactions/${uuid.txn6}`,
+  },
+];
+
+const userCompanySpends = [
+  {
+    id: uuid.anna + '-' + uuid.cmp1,
+    userId: uuid.anna,
+    companyId: uuid.cmp1,
+    limitMinor: 500000,
+    remainingMinor: 120000,
+    currency: 'SEK',
+    createdAt: new Date('2026-04-01T09:00:00Z'),
+    updatedAt: new Date('2026-04-10T09:00:00Z'),
+  },
+  {
+    id: uuid.anna + '-' + uuid.cmp2,
+    userId: uuid.anna,
+    companyId: uuid.cmp2,
+    limitMinor: 750000,
+    remainingMinor: 400000,
+    currency: 'SEK',
+    createdAt: new Date('2026-04-01T09:00:00Z'),
+    updatedAt: new Date('2026-04-10T09:00:00Z'),
   },
 ];
 

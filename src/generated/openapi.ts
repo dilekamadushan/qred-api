@@ -46,7 +46,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/dashboard": {
+    "/api/v1/dashboard": {
         parameters: {
             query?: never;
             header?: never;
@@ -70,7 +70,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies/{companyId}/card/default": {
+    "/api/v1/companies/{companyId}/card/default": {
         parameters: {
             query?: never;
             header?: never;
@@ -90,7 +90,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies": {
+    "/api/v1/companies": {
         parameters: {
             query?: never;
             header?: never;
@@ -110,7 +110,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/user/company-selection": {
+    "/api/v1/user/company-selection": {
         parameters: {
             query?: never;
             header?: never;
@@ -130,7 +130,7 @@ export interface paths {
         patch: operations["updateCompanySelection"];
         trace?: never;
     };
-    "/v1/companies/{companyId}/invoices/{invoiceId}": {
+    "/api/v1/companies/{companyId}/invoices/{invoiceId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -150,7 +150,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies/{companyId}/remaining-spend": {
+    "/api/v1/companies/{companyId}/remaining-spend": {
         parameters: {
             query?: never;
             header?: never;
@@ -170,7 +170,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies/{companyId}/cards/{cardId}": {
+    "/api/v1/companies/{companyId}/cards/{cardId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -190,7 +190,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies/{companyId}/cards/{cardId}/block": {
+    "/api/v1/companies/{companyId}/cards/{cardId}/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -210,7 +210,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies/{companyId}/cards/{cardId}/unblock": {
+    "/api/v1/companies/{companyId}/cards/{cardId}/unblock": {
         parameters: {
             query?: never;
             header?: never;
@@ -230,7 +230,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies/{companyId}/cards/{cardId}/activate": {
+    "/api/v1/companies/{companyId}/cards/{cardId}/activate": {
         parameters: {
             query?: never;
             header?: never;
@@ -250,7 +250,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/companies/{companyId}/transactions": {
+    "/api/v1/companies/{companyId}/transactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -277,7 +277,7 @@ export interface components {
         /** @description A dashboard section. If value is present, the section loaded successfully. If error is present, the section failed to load. Only one of value or error should be present. */
         DashboardSection: {
             /** @description Section data, present on success. */
-            value?: unknown;
+            value?: Record<string, never> | null;
             /** @description Error message if the section failed to load. */
             error?: string | null;
         };
@@ -310,7 +310,7 @@ export interface components {
                          * @description Card image URL for dashboard display.
                          * @example https://cdn.qred.example.com/card-artwork/visa.png
                          */
-                        artworkUrl: string;
+                        artworkUrl: string | null;
                     };
                 } & components["schemas"]["DashboardSection"];
                 invoice: {
@@ -702,6 +702,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
+            503: components["responses"]["ServiceUnavailable"];
         };
     };
     listCompanies: {

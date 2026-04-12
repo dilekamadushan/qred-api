@@ -5,8 +5,10 @@ DashboardSection:
     A dashboard section. If value is present, the section loaded successfully. If error is present, the section failed to load. Only one of value or error should be present.
   properties:
     value:
+      type: object
       nullable: true
       description: Section data, present on success.
+      # ...existing code...
     error:
       type: string
       nullable: true
@@ -55,6 +57,7 @@ DashboardResponse:
                   example: active
                 artworkUrl:
                   type: string
+                  nullable: true
                   format: uri
                   description: Card image URL for dashboard display.
                   example: "https://cdn.qred.example.com/card-artwork/visa.png"

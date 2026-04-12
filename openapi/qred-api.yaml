@@ -8,9 +8,9 @@ info:
     Backend, Frontend, and Product before implementation starts.
 servers:
   - url: http://0.0.0.0:4010
-    description: Sandbox
-  - url: https://api.qred.example.com
-    description: Production
+    description: Mock Server
+  - url: http://0.0.0.0:3000
+    description: Development
 tags:
   - name: Companies
     description: Company context and selector data.
@@ -41,28 +41,28 @@ paths:
                   status:
                     type: string
                     example: ok
-  /v1/dashboard:
-    $ref: "./paths/dashboard.yaml#/~1v1~1dashboard"
-  /v1/companies/{companyId}/card/default:
-    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1card~1default"
-  /v1/companies:
-    $ref: "./paths/companies.yaml#/~1v1~1companies"
-  /v1/user/company-selection:
-    $ref: "./paths/companies.yaml#/~1v1~1user~1company-selection"
-  /v1/companies/{companyId}/invoices/{invoiceId}:
-    $ref: "./paths/company-resources.yaml#/~1v1~1companies~1{companyId}~1invoices~1{invoiceId}"
-  /v1/companies/{companyId}/remaining-spend:
-    $ref: "./paths/company-resources.yaml#/~1v1~1companies~1{companyId}~1remaining-spend"
-  /v1/companies/{companyId}/cards/{cardId}:
-    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}"
-  /v1/companies/{companyId}/cards/{cardId}/block:
-    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}~1block"
-  /v1/companies/{companyId}/cards/{cardId}/unblock:
-    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}~1unblock"
-  /v1/companies/{companyId}/cards/{cardId}/activate:
-    $ref: "./paths/cards.yaml#/~1v1~1companies~1{companyId}~1cards~1{cardId}~1activate"
-  /v1/companies/{companyId}/transactions:
-    $ref: "./paths/transactions.yaml#/~1v1~1companies~1{companyId}~1transactions"
+  /api/v1/dashboard:
+    $ref: "./paths/dashboard.yaml#/~1api~1v1~1dashboard"
+  /api/v1/companies/{companyId}/card/default:
+    $ref: "./paths/cards.yaml#/~1api~1v1~1companies~1{companyId}~1card~1default"
+  /api/v1/companies:
+    $ref: "./paths/companies.yaml#/~1api~1v1~1companies"
+  /api/v1/user/company-selection:
+    $ref: "./paths/companies.yaml#/~1api~1v1~1user~1company-selection"
+  /api/v1/companies/{companyId}/invoices/{invoiceId}:
+    $ref: "./paths/company-resources.yaml#/~1api~1v1~1companies~1{companyId}~1invoices~1{invoiceId}"
+  /api/v1/companies/{companyId}/remaining-spend:
+    $ref: "./paths/company-resources.yaml#/~1api~1v1~1companies~1{companyId}~1remaining-spend"
+  /api/v1/companies/{companyId}/cards/{cardId}:
+    $ref: "./paths/cards.yaml#/~1api~1v1~1companies~1{companyId}~1cards~1{cardId}"
+  /api/v1/companies/{companyId}/cards/{cardId}/block:
+    $ref: "./paths/cards.yaml#/~1api~1v1~1companies~1{companyId}~1cards~1{cardId}~1block"
+  /api/v1/companies/{companyId}/cards/{cardId}/unblock:
+    $ref: "./paths/cards.yaml#/~1api~1v1~1companies~1{companyId}~1cards~1{cardId}~1unblock"
+  /api/v1/companies/{companyId}/cards/{cardId}/activate:
+    $ref: "./paths/cards.yaml#/~1api~1v1~1companies~1{companyId}~1cards~1{cardId}~1activate"
+  /api/v1/companies/{companyId}/transactions:
+    $ref: "./paths/transactions.yaml#/~1api~1v1~1companies~1{companyId}~1transactions"
 components:
   securitySchemes:
     bearerAuth:
