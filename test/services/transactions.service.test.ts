@@ -8,6 +8,9 @@ jest.mock('../../src/db/models/transaction');
 function createMockTransaction(overrides = {}) {
   return {
     id: 'txn_1',
+    companyId: 'cmp_123',
+    cardId: 'card_123',
+    userId: 'user_123',
     createdAt: new Date(),
     merchantName: 'Merchant',
     description: 'Test purchase',
@@ -36,7 +39,7 @@ describe('TransactionService', () => {
     it('returns transactions for a company', async () => {
       const mockTxns = [createMockTransaction()];
       (Transaction.findAll as jest.Mock).mockResolvedValueOnce(mockTxns);
-      const result = await TransactionService.getTransactionsForCompany('cmp_123');
+      const result = await TransactionService.getTransactionsForCompany('cmp_123', 'user_123');
       expect(result.items).toHaveLength(1);
       expect(result.items[0]).toEqual(
         expect.objectContaining({
@@ -56,7 +59,7 @@ describe('TransactionService', () => {
     it('applies status, date range, search and sorting options', async () => {
       (Transaction.findAll as jest.Mock).mockResolvedValueOnce([createMockTransaction()]);
 
-      await TransactionService.getTransactionsForCompany('cmp_123', {
+      await TransactionService.getTransactionsForCompany('cmp_123', 'user_123', {
         status: 'booked',
         dateFrom: '2026-04-01',
         dateTo: '2026-04-30',
@@ -73,6 +76,7 @@ describe('TransactionService', () => {
       ]);
       expect(findAllArg.limit).toBe(26);
       expect(findAllArg.where[Op.and]).toBeDefined();
+      expect(findAllArg.where[Op.and][0]).toEqual({ companyId: 'cmp_123', userId: 'user_123' });
     });
 
     it('applies cursor pagination clause', async () => {
@@ -81,7 +85,10 @@ describe('TransactionService', () => {
         JSON.stringify({ createdAt: '2026-04-10T10:16:05.000Z', id: 'txn_100' })
       ).toString('base64');
 
-      await TransactionService.getTransactionsForCompany('cmp_123', { cursor, sortOrder: 'desc' });
+      await TransactionService.getTransactionsForCompany('cmp_123', 'user_123', {
+        cursor,
+        sortOrder: 'desc',
+      });
 
       const findAllArg = (Transaction.findAll as jest.Mock).mock.calls[0][0];
       expect(findAllArg.where[Op.and]).toBeDefined();
@@ -89,9 +96,9 @@ describe('TransactionService', () => {
 
     it('logs error and throws if DB fails', async () => {
       (Transaction.findAll as jest.Mock).mockRejectedValueOnce(new Error('db error'));
-      await expect(TransactionService.getTransactionsForCompany('cmp_123')).rejects.toThrow(
-        'db error'
-      );
+      await expect(
+        TransactionService.getTransactionsForCompany('cmp_123', 'user_123')
+      ).rejects.toThrow('db error');
       expect(logErrorSpy).toHaveBeenCalledWith(
         'TransactionService',
         expect.stringContaining('Database error'),

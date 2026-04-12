@@ -96,6 +96,15 @@ export function initModels(sequelize: Sequelize) {
     as: 'card',
   });
 
+  User.hasMany(Transaction, {
+    foreignKey: 'userId',
+    as: 'transactions',
+  });
+  Transaction.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+  });
+
   initialized = true;
 
   return {

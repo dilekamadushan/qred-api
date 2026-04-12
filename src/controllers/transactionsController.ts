@@ -12,9 +12,10 @@ type TransactionListResponse = components['schemas']['TransactionListResponse'];
 export async function getTransactions(request: Request, res: Response, next: NextFunction) {
   try {
     const companyId = request.params.companyId;
+    const userId = request.user!.userId;
     const queryOptions = buildTransactionQueryOptions(request.query);
 
-    const data = await getTransactionsForCompany(companyId as string, queryOptions);
+    const data = await getTransactionsForCompany(companyId as string, userId, queryOptions);
 
     const { self, next } = buildPaginationLinks(request, data.page);
 

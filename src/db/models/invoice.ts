@@ -19,8 +19,6 @@ export class Invoice extends Model<InferAttributes<Invoice>, InferCreationAttrib
   declare amountMinor: number;
   declare currency: string;
   declare status: (typeof invoiceStatuses)[number];
-  declare issuedAt: string | null;
-  declare paidAt: Date | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -63,14 +61,6 @@ export function initInvoiceModel(sequelize: Sequelize): typeof Invoice {
       status: {
         type: DataTypes.ENUM(...invoiceStatuses),
         allowNull: false,
-      },
-      issuedAt: {
-        type: DataTypes.DATEONLY,
-        allowNull: true,
-      },
-      paidAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
       },
       createdAt: {
         type: DataTypes.DATE,

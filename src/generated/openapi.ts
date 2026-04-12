@@ -130,7 +130,7 @@ export interface paths {
         patch: operations["updateCompanySelection"];
         trace?: never;
     };
-    "/api/v1/companies/{companyId}/invoices/{invoiceId}": {
+    "/api/v1/companies/{companyId}/invoices/latest": {
         parameters: {
             query?: never;
             header?: never;
@@ -138,10 +138,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get invoice details by invoice id for a company.
-         * @description Returns the details for the specified invoice, scoped to the given company.
+         * Get the latest due invoice for a company.
+         * @description Returns the latest (most recent, unpaid) invoice for the given company.
          */
-        get: operations["getInvoiceById"];
+        get: operations["getLatestInvoice"];
         put?: never;
         post?: never;
         delete?: never;
@@ -450,10 +450,23 @@ export interface components {
             amountMinor: number;
             currency: string;
         };
+        /**
+         * @example {
+         *       "label": "Invoice due",
+         *       "dueDate": "2026-05-01",
+         *       "amount": {
+         *         "amountMinor": 125000,
+         *         "currency": "SEK"
+         *       }
+         *     }
+         */
         InvoiceDue: {
             /** @example Invoice due */
             label: string;
-            /** Format: date */
+            /**
+             * Format: date
+             * @example 2026-05-01
+             */
             dueDate: string;
             amount: components["schemas"]["Money"];
         };
@@ -787,21 +800,19 @@ export interface operations {
             503: components["responses"]["ServiceUnavailable"];
         };
     };
-    getInvoiceById: {
+    getLatestInvoice: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 /** @description Unique identifier for the company selected in the mobile app. */
                 companyId: components["parameters"]["CompanyId"];
-                /** @description Unique identifier for the invoice. */
-                invoiceId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Invoice details returned. */
+            /** @description Latest due invoice details returned. */
             200: {
                 headers: {
                     [name: string]: unknown;

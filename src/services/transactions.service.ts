@@ -16,9 +16,13 @@ import { DEFAULT_PAGE_SIZE, ERROR_CODES, SORT_ORDER } from '../common/constants'
 import type { Transaction as TransactionModel } from '../db/models/transaction';
 import type { InferAttributes } from 'sequelize';
 
-function buildWhereClauses(companyId: string, options: TransactionQueryOptions): WhereOptions[] {
+function buildWhereClauses(
+  companyId: string,
+  userId: string,
+  options: TransactionQueryOptions
+): WhereOptions[] {
   const { status, search, dateFrom, dateTo } = options;
-  const clauses: WhereOptions[] = [{ companyId }];
+  const clauses: WhereOptions[] = [{ companyId, userId }];
   if (status) clauses.push({ status });
 
   if (search && search.trim()) {
@@ -71,6 +75,7 @@ function mapTransactionToSummary(transaction: TransactionRaw): TransactionSummar
 
 async function queryTransactions(
   companyId: string,
+  userId: string,
   options: TransactionQueryOptions = {}
 ): Promise<TransactionListData> {
   try {
@@ -81,7 +86,7 @@ async function queryTransactions(
       sortOrder = 'desc',
     } = options;
 
-    const andClauses = buildWhereClauses(companyId, options);
+    const andClauses = buildWhereClauses(companyId, userId, options);
     let where: WhereOptions = andClauses.length === 1 ? andClauses[0] : { [Op.and]: andClauses };
 
     const decoded: CursorPayload | null = cursor ? decodeCursor<CursorPayload>(cursor) : null;
@@ -141,10 +146,13 @@ export const transactionsCircuitBreaker = sharedDbCircuitBreaker;
 
 export async function getTransactionsForCompany(
   companyId: string,
+  userId: string,
   options: TransactionQueryOptions = {}
 ): Promise<TransactionListData> {
   try {
-    return await transactionsCircuitBreaker.execute(() => queryTransactions(companyId, options));
+    return await transactionsCircuitBreaker.execute(() =>
+      queryTransactions(companyId, userId, options)
+    );
   } catch (error) {
     const err = error as GenericError;
     if (err.code === ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE) {

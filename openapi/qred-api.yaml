@@ -49,8 +49,8 @@ paths:
     $ref: "./paths/companies.yaml#/~1api~1v1~1companies"
   /api/v1/user/company-selection:
     $ref: "./paths/companies.yaml#/~1api~1v1~1user~1company-selection"
-  /api/v1/companies/{companyId}/invoices/{invoiceId}:
-    $ref: "./paths/company-resources.yaml#/~1api~1v1~1companies~1{companyId}~1invoices~1{invoiceId}"
+  /api/v1/companies/{companyId}/invoices/latest:
+    $ref: "./paths/company-resources.yaml#/~1api~1v1~1companies~1{companyId}~1invoices~1latest"
   /api/v1/companies/{companyId}/remaining-spend:
     $ref: "./paths/company-resources.yaml#/~1api~1v1~1companies~1{companyId}~1remaining-spend"
   /api/v1/companies/{companyId}/cards/{cardId}:

@@ -1,21 +1,16 @@
 
-/api/v1/companies/{companyId}/invoices/{invoiceId}:
+
+/api/v1/companies/{companyId}/invoices/latest:
   get:
     tags: [Dashboard]
-    operationId: getInvoiceById
-    summary: Get invoice details by invoice id for a company.
-    description: Returns the details for the specified invoice, scoped to the given company.
+    operationId: getLatestInvoice
+    summary: Get the latest due invoice for a company.
+    description: Returns the latest (most recent, unpaid) invoice for the given company.
     parameters:
       - $ref: "../components/parameters.yaml#/CompanyId"
-      - name: invoiceId
-        in: path
-        required: true
-        description: Unique identifier for the invoice.
-        schema:
-          type: string
     responses:
       "200":
-        description: Invoice details returned.
+        description: Latest due invoice details returned.
         content:
           application/json:
             schema:

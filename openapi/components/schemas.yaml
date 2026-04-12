@@ -204,8 +204,15 @@ InvoiceDue:
     dueDate:
       type: string
       format: date
+      example: '2026-05-01'
     amount:
       $ref: "#/Money"
+  example:
+    label: Invoice due
+    dueDate: '2026-05-01'
+    amount:
+      amountMinor: 125000
+      currency: SEK
 
 RemainingSpendSummary:
   type: object
