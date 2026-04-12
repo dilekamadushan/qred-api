@@ -1,3 +1,40 @@
+---
+
+# Project Summary
+
+This project implements a robust, production-grade backend API for a mobile dashboard, following the Backend-for-Frontend (BFF) pattern. The API is designed for resilience, maintainability, and strict contract alignment using OpenAPI as the single source of truth.
+
+## Key Features
+
+- **OpenAPI-Driven Development:** All endpoints and schemas are defined in OpenAPI and strictly validated at runtime. TypeScript types are generated from the contract.
+- **Dashboard Endpoint:** The `/dashboard` endpoint aggregates company, card, spend, and transaction preview data in parallel, returning partial responses if any section fails (with per-section error objects). This ensures the UI remains responsive and resilient.
+- **Service Extraction:** Spend and transaction preview logic are implemented as reusable services, supporting both dashboard aggregation and granular endpoints.
+- **Resilience Patterns:**
+  - **SLA Timeouts:** Each dashboard section has a per-section timeout (e.g., `DASHBOARD_SECTION_TIMEOUT_MS`) to prevent slow dependencies from blocking the whole response.
+  - **Circuit Breaker:** All DB/service calls are wrapped in circuit breakers to prevent cascading failures and return partial data if a dependency is down.
+  - **Rate Limiting:** Endpoints are protected with rate limiting to ensure fair usage and protect backend resources.
+- **Error Handling:** Section-level errors are returned for partial failures, following the ProblemDetails (RFC 7807) pattern for machine-readable error responses.
+- **Comprehensive Testing:**
+  - Unit and integration tests cover all endpoints, including partial response scenarios (rate limit, circuit breaker open, timeouts).
+  - Test/dev environments inject a fixed user for seamless local development and testing.
+- **Automation:** OpenAPI bundle and type generation are automated in the build lifecycle, ensuring contract and types are always up to date.
+
+## Technical Stack
+- Node.js, Express, Sequelize ORM
+- Jest for testing
+- OpenAPI/Swagger for contract and docs
+- Circuit breaker: Opossum
+- Rate limiting: express-rate-limit
+
+## Motivation
+This architecture ensures:
+- Fast, resilient, and user-friendly mobile dashboard experiences
+- Clear separation of concerns and maintainability
+- Easy onboarding and review for product, frontend, and backend teams
+- Predictable, contract-driven development with minimal ambiguity
+
+---
+
 # Qred API
 
 ## First commit
@@ -36,10 +73,10 @@ For advanced or power-user flows, granular endpoints are also available for dire
 
 ---
 
-
 ## Step -7
 
 ### Backend & API
+
 - **OpenAPI contract:** Strictly followed as the source of truth; all endpoints and schemas updated accordingly.
 - **Invoices:**
   - Added `/api/v1/companies/{companyId}/invoices/latest` endpoint to fetch the latest due invoice for a company.
@@ -47,17 +84,19 @@ For advanced or power-user flows, granular endpoints are also available for dire
   - Invoice model, service, controller, and routes refactored for maintainability and OpenAPI alignment.
 
 ### Circuit Breaker & Logging
+
 - Invoice and transaction services now use a shared circuit breaker for DB calls.
 - Centralized logging for errors and warnings in all service layers.
 
 ### Test Coverage
+
 - **Invoices:**
   - Added robust unit tests for service and controller logic.
   - Added integration tests for `/invoices/latest` endpoint.
 - **Transactions:**
   - Updated all unit and integration tests for new `userId` logic.
   - Improved test data setup and structure for maintainability.
-schema examples for improved documentation and testability.
+    schema examples for improved documentation and testability.
 
 ---
 
@@ -184,3 +223,17 @@ This approach supports safe, maintainable growth as the API evolves and is ready
 - **Contract safety:** Keep runtime behavior and tests strictly synchronized with OpenAPI.
 - **Resilience:** Reusing one shared DB circuit breaker centralizes protection under dependency failure.
 - **Maintainability:** Shared pagination and circuit-breaker patterns reduce duplication and drift.
+
+## /dashboard Endpoint Summary
+
+The `/dashboard` endpoint provides a single, UX-focused API tailored for the mobile dashboard. It aggregates data from multiple backend services in parallel, including company info, card details, remaining spend, and a transaction preview. Each section is isolated with SLA timeouts and circuit breakers, ensuring that a failure or delay in one section does not block the entire response. If a section is unavailable, the API returns a partial response with per-section error objects, allowing the UI to render available data and display loading or error states for missing sections.
+
+**Key Features:**
+
+- Aggregates company, card, spend, and transaction preview data in parallel
+- Per-section SLA timeouts and circuit breaker protection
+- Returns partial responses with section-level errors on failure
+- Strict OpenAPI contract validation and type safety
+- Comprehensive integration and unit test coverage for all scenarios
+
+This design ensures a fast, resilient, and user-friendly dashboard experience, even under backend failures or heavy load.

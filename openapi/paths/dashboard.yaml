@@ -6,8 +6,8 @@
     summary: Get the mobile dashboard for the authenticated user’s selected company.
     description: |
       Returns all data required to render the main dashboard screen in a single
-      request, including card summary, invoice due, remaining spend, and a preview
-      of the latest transactions.
+      request, including card summary, remaining spend, and a preview
+      of the latest transactions. (Invoice details are not included.)
 
       This endpoint is an aggregated read model. The backend fetches data from multiple services in parallel, with timeouts and fallbacks. If some sections are unavailable, the API returns partial data with per-section status, allowing the UI to render what is available immediately and show loading/error states for missing sections. This keeps the UX fast and resilient, while still supporting granular endpoints for advanced flows.
     parameters:
@@ -48,11 +48,6 @@
                         id: card_987
                         status: active
                         artworkUrl: "https://cdn.qred.example.com/card-artwork/visa.png"
-                    invoice:
-                      value:
-                        id: inv_456
-                        status: due
-                        dueDate: "2026-05-01"
                     spend:
                       value:
                         used: 1200.5
@@ -90,11 +85,6 @@
                         logoUrl: "https://cdn.qred.example.com/company-logos/cmp_123.png"
                     card:
                       error: "Service unavailable"
-                    invoice:
-                      value:
-                        id: inv_456
-                        status: due
-                        dueDate: "2026-05-01"
                     spend:
                       error: "Timeout"
                     transactions:

@@ -1,6 +1,5 @@
 import type {
   CreationOptional,
-  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   NonAttribute,
@@ -17,11 +16,9 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
   declare username: string;
   declare firstName: string;
   declare lastName: string;
-  declare selectedCompanyId: ForeignKey<Company['id']> | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
-  declare selectedCompany?: NonAttribute<Company | null>;
   declare companies?: NonAttribute<Company[]>;
   declare memberships?: NonAttribute<UserCompanyMembership[]>;
 }
@@ -51,16 +48,6 @@ export function initUserModel(sequelize: Sequelize): typeof User {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      selectedCompanyId: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        references: {
-          model: 'companies',
-          key: 'id',
-        },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
       createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -76,10 +63,6 @@ export function initUserModel(sequelize: Sequelize): typeof User {
       sequelize,
       tableName: 'users',
       indexes: [
-        {
-          name: 'users_selected_company_idx',
-          fields: ['selectedCompanyId'],
-        },
         {
           name: 'users_username_idx',
           unique: true,

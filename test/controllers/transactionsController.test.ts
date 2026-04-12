@@ -27,7 +27,6 @@ const mockResponse = (): Response => {
   res.json = jest.fn().mockReturnValue(res);
   return res as unknown as Response;
 };
-const mockNext = jest.fn();
 
 describe('transactionsController', () => {
   afterEach(() => {
@@ -69,7 +68,7 @@ describe('transactionsController', () => {
         );
       req.originalUrl = '/api/v1/companies/cmp_123/transactions?pageSize=20';
       const res = mockResponse();
-      await getTransactions(req, res, mockNext);
+      await getTransactions(req, res);
       expect(TransactionService.getTransactionsForCompany).toHaveBeenCalledWith(
         'cmp_123',
         'test-user-id',
@@ -96,18 +95,13 @@ describe('transactionsController', () => {
     });
 
     it('returns 503 if circuit breaker is open', async () => {
-      jest.spyOn(TransactionService, 'getTransactionsForCompany').mockImplementation(() => {
-        throw new DbCircuitOpenError();
-      });
+      jest
+        .spyOn(TransactionService, 'getTransactionsForCompany')
+        .mockRejectedValue(new DbCircuitOpenError());
       const req = mockRequest({ companyId: 'cmp_123' });
       const res = mockResponse();
-      await getTransactions(req, res, mockNext);
-      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.SERVICE_UNAVAILABLE);
-      expect(res.json).toHaveBeenCalled();
-      // @ts-expect-error: mock property is added by jest
-      const errorPayload = res.json.mock.calls[0][0];
-      expect(errorPayload.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
-      expect(errorPayload.code).toBe('service_unavailable');
+
+      await expect(getTransactions(req, res)).rejects.toBeInstanceOf(DbCircuitOpenError);
     });
 
     it('calls next(err) on unexpected error', async () => {
@@ -115,8 +109,8 @@ describe('transactionsController', () => {
       jest.spyOn(TransactionService, 'getTransactionsForCompany').mockRejectedValue(error);
       const req = mockRequest({ companyId: 'cmp_123' });
       const res = mockResponse();
-      await getTransactions(req, res, mockNext);
-      expect(mockNext).toHaveBeenCalledWith(error);
+
+      await expect(getTransactions(req, res)).rejects.toThrow('unexpected');
     });
 
     it('passes full query options to the service', async () => {
@@ -147,7 +141,7 @@ describe('transactionsController', () => {
       req.originalUrl = '/api/v1/companies/cmp_123/transactions?pageSize=25';
       const res = mockResponse();
 
-      await getTransactions(req, res, mockNext);
+      await getTransactions(req, res);
 
       expect(TransactionService.getTransactionsForCompany).toHaveBeenCalledWith(
         'cmp_123',

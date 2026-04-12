@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import type { GenericError } from '../common/types';
+import type { GenericError } from '../common/types/types';
 import type { components } from '../generated/openapi';
 import { Card } from '../db/models/card';
 import { sharedDbCircuitBreaker } from './circuitBreaker.service';

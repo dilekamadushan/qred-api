@@ -1,4 +1,4 @@
-import type { components } from '../generated/openapi';
+import type { components } from '../../generated/openapi';
 
 export type TransactionSummary = components['schemas']['TransactionSummary'];
 export type PageInfo = components['schemas']['PageInfo'];
@@ -26,7 +26,7 @@ export type User = {
 // Common types for reuse across the codebase
 
 export type HttpStatusCode =
-  (typeof import('./constants').HTTP_STATUS)[keyof typeof import('./constants').HTTP_STATUS];
+  (typeof import('../constants').HTTP_STATUS)[keyof typeof import('../constants').HTTP_STATUS];
 
 export type InvalidField = {
   field: string;

@@ -23,7 +23,6 @@ const testUser = {
   username: 'testuser',
   firstName: 'Test',
   lastName: 'User',
-  selectedCompanyId: companyId,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -32,7 +31,7 @@ const testMembership = {
   userId,
   companyId,
   role: 'owner' as const,
-  isDefault: true,
+  isSelected: true,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

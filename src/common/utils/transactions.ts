@@ -1,4 +1,4 @@
-import type { TransactionQueryOptions } from '../common/types';
+import type { TransactionQueryOptions } from '../types/types';
 
 export function buildTransactionQueryOptions(
   query: Record<string, unknown>

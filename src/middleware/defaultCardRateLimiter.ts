@@ -1,5 +1,5 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { createProblemDetails, sendProblemDetails } from '../common/utils/problem-details';
+import { createProblemDetails, sendProblemDetails } from '../common/utils/problemDetails';
 import { HTTP_STATUS } from '../common/constants';
 
 type DefaultRateLimiterOptions = {
