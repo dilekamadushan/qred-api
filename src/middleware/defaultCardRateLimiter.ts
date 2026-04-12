@@ -28,13 +28,13 @@ export function createDefaultRateLimiter(options: DefaultRateLimiterOptions = {}
     handler: (req, res) => {
       sendProblemDetails(
         res,
-        createProblemDetails(
+        createProblemDetails({
           req,
-          HTTP_STATUS.TOO_MANY_REQUESTS,
-          'Too many requests',
-          errorMessage,
-          errorCode
-        ),
+          status: HTTP_STATUS.TOO_MANY_REQUESTS,
+          title: 'Too many requests',
+          detail: errorMessage,
+          code: errorCode,
+        }),
         {
           'Retry-After': String(
             Math.ceil(Number(process.env.DEFAULT_RATE_LIMIT_WINDOW_MS ?? windowMs) / 1000)

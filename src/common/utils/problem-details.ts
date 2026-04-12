@@ -3,14 +3,21 @@ import { randomUUID } from 'crypto';
 import type { Request, Response } from 'express';
 import type { InvalidField, ProblemDetails } from '../../common/types';
 
-export function createProblemDetails(
-  req: Request,
-  status: number,
-  title: string,
-  detail: string,
-  code: string,
-  errors: InvalidField[] | null = null
-): ProblemDetails {
+export function createProblemDetails({
+  req,
+  status,
+  title,
+  detail,
+  code,
+  errors = null,
+}: {
+  req: Request;
+  status: number;
+  title: string;
+  detail: string;
+  code: string;
+  errors?: InvalidField[] | null;
+}): ProblemDetails {
   return {
     type: `https://api.qred.example.com/problems/${code}`,
     title,
@@ -23,14 +30,21 @@ export function createProblemDetails(
   };
 }
 
-export function createProblemDetailsWithoutRequest(
-  status: number,
-  title: string,
-  detail: string,
-  code: string,
-  instance: string | null = null,
-  errors: InvalidField[] | null = null
-): ProblemDetails {
+export function createProblemDetailsWithoutRequest({
+  status,
+  title,
+  detail,
+  code,
+  instance = null,
+  errors = null,
+}: {
+  status: number;
+  title: string;
+  detail: string;
+  code: string;
+  instance?: string | null;
+  errors?: InvalidField[] | null;
+}): ProblemDetails {
   return {
     type: `https://api.qred.example.com/problems/${code}`,
     title,

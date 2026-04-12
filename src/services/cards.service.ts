@@ -1,25 +1,14 @@
 import { Op } from 'sequelize';
 import type { GenericError } from '../common/types';
-
+import type { components } from '../generated/openapi';
 import { Card } from '../db/models/card';
-import { createDbCircuitBreaker } from './circuitBreaker.service';
+import { sharedDbCircuitBreaker } from './circuitBreaker.service';
 import { logError, logWarn } from '../common/utils/logUtils';
 import { ERROR_CODES } from '../common/constants';
 
-type DefaultCardSummary = {
-  id: string;
-  status: string;
-  displayName: string;
-  maskedPan: string;
-  brand: string;
-  cardholderName: string;
-  artworkUrl: string;
-};
+type CardSummary = components['schemas']['CardSummary'];
 
-async function queryDefaultCard(
-  companyId: string,
-  userId: string
-): Promise<DefaultCardSummary | null> {
+async function queryDefaultCard(companyId: string, userId: string): Promise<CardSummary | null> {
   try {
     const card = await Card.findOne({
       where: {
@@ -42,10 +31,11 @@ async function queryDefaultCard(
 
     if (!card) {
       logWarn('CardService', `No default card found for companyId: ${companyId}`);
+
       return null;
     }
 
-    return card as DefaultCardSummary;
+    return card as CardSummary;
   } catch (error) {
     logError('CardService', `Error querying default card for companyId: ${companyId}`, error);
 
@@ -53,22 +43,17 @@ async function queryDefaultCard(
   }
 }
 
-export const defaultCardCircuitBreaker = createDbCircuitBreaker(queryDefaultCard, {
-  timeout: 2500,
-  errorThresholdPercentage: 50,
-  resetTimeout: 5000,
-  volumeThreshold: 2,
-});
+export const defaultCardCircuitBreaker = sharedDbCircuitBreaker;
 
 export async function getDefaultCardForCompany(
   companyId: string,
   userId: string
-): Promise<DefaultCardSummary | null> {
+): Promise<CardSummary | null> {
   try {
-    return await defaultCardCircuitBreaker.execute(companyId, userId);
+    return await defaultCardCircuitBreaker.execute(() => queryDefaultCard(companyId, userId));
   } catch (error) {
-    const err = error as GenericError;
-    if (err.code === ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE) {
+    const genericError = error as GenericError;
+    if (genericError.code === ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE) {
       logWarn('CardService', `Circuit breaker is OPEN for companyId: ${companyId}`);
     } else {
       logError('CardService', `Database error for companyId: ${companyId}`, error);

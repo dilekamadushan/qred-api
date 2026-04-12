@@ -26,13 +26,13 @@ export function errorHandler(error: HttpError, req: Request, res: Response, _nex
 
   sendProblemDetails(
     res,
-    createProblemDetailsWithoutRequest(
+    createProblemDetailsWithoutRequest({
       status,
-      status === HTTP_STATUS.BAD_REQUEST ? 'Validation error' : 'Internal server error',
-      error.message,
-      status === HTTP_STATUS.BAD_REQUEST ? 'validation_error' : 'internal_server_error',
-      `https://api.qred.example.com${req.originalUrl}`,
-      errors
-    )
+      title: status === HTTP_STATUS.BAD_REQUEST ? 'Validation error' : 'Internal server error',
+      detail: error.message,
+      code: status === HTTP_STATUS.BAD_REQUEST ? 'validation_error' : 'internal_server_error',
+      instance: `https://api.qred.example.com${req.originalUrl}`,
+      errors,
+    })
   );
 }
