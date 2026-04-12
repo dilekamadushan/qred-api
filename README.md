@@ -36,6 +36,31 @@ For advanced or power-user flows, granular endpoints are also available for dire
 
 ---
 
+
+## Step -7
+
+### Backend & API
+- **OpenAPI contract:** Strictly followed as the source of truth; all endpoints and schemas updated accordingly.
+- **Invoices:**
+  - Added `/api/v1/companies/{companyId}/invoices/latest` endpoint to fetch the latest due invoice for a company.
+  - Removed redundant invoice model attributes (`issuedAt`, `paidAt`).
+  - Invoice model, service, controller, and routes refactored for maintainability and OpenAPI alignment.
+
+### Circuit Breaker & Logging
+- Invoice and transaction services now use a shared circuit breaker for DB calls.
+- Centralized logging for errors and warnings in all service layers.
+
+### Test Coverage
+- **Invoices:**
+  - Added robust unit tests for service and controller logic.
+  - Added integration tests for `/invoices/latest` endpoint.
+- **Transactions:**
+  - Updated all unit and integration tests for new `userId` logic.
+  - Improved test data setup and structure for maintainability.
+schema examples for improved documentation and testability.
+
+---
+
 ## UI Component to Endpoint Mapping
 
 This section maps each element of the mobile dashboard UI to its supporting API endpoint(s). This mapping ensures:

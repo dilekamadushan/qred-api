@@ -70,16 +70,20 @@ describe('transactionsController', () => {
       req.originalUrl = '/api/v1/companies/cmp_123/transactions?pageSize=20';
       const res = mockResponse();
       await getTransactions(req, res, mockNext);
-      expect(TransactionService.getTransactionsForCompany).toHaveBeenCalledWith('cmp_123', {
-        cursor: undefined,
-        status: undefined,
-        dateFrom: undefined,
-        dateTo: undefined,
-        pageSize: 10,
-        sortBy: undefined,
-        sortOrder: undefined,
-        search: undefined,
-      });
+      expect(TransactionService.getTransactionsForCompany).toHaveBeenCalledWith(
+        'cmp_123',
+        'test-user-id',
+        {
+          cursor: undefined,
+          status: undefined,
+          dateFrom: undefined,
+          dateTo: undefined,
+          pageSize: 10,
+          sortBy: undefined,
+          sortOrder: undefined,
+          search: undefined,
+        }
+      );
       expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -145,16 +149,20 @@ describe('transactionsController', () => {
 
       await getTransactions(req, res, mockNext);
 
-      expect(TransactionService.getTransactionsForCompany).toHaveBeenCalledWith('cmp_123', {
-        cursor: 'abc',
-        status: 'booked',
-        dateFrom: '2026-04-01',
-        dateTo: '2026-04-30',
-        pageSize: 25,
-        sortBy: 'amount',
-        sortOrder: 'asc',
-        search: 'coffee',
-      });
+      expect(TransactionService.getTransactionsForCompany).toHaveBeenCalledWith(
+        'cmp_123',
+        'test-user-id',
+        {
+          cursor: 'abc',
+          status: 'booked',
+          dateFrom: '2026-04-01',
+          dateTo: '2026-04-30',
+          pageSize: 25,
+          sortBy: 'amount',
+          sortOrder: 'asc',
+          search: 'coffee',
+        }
+      );
     });
   });
 });

@@ -9,6 +9,7 @@ import { DataTypes, Model } from 'sequelize';
 
 import type { Card } from './card';
 import type { Company } from './company';
+import type { User } from './user';
 
 export const transactionDirections = ['debit', 'credit'] as const;
 export const transactionStatuses = ['pending', 'booked', 'declined', 'reversed'] as const;
@@ -20,6 +21,7 @@ export class Transaction extends Model<
   declare id: string;
   declare companyId: ForeignKey<Company['id']>;
   declare cardId: ForeignKey<Card['id']>;
+  declare userId: ForeignKey<User['id']>;
   declare createdAt: Date;
   declare merchantName: string;
   declare description: string;
@@ -54,6 +56,16 @@ export function initTransactionModel(sequelize: Sequelize): typeof Transaction {
         allowNull: false,
         references: {
           model: 'cards',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      },
+      userId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: 'users',
           key: 'id',
         },
         onDelete: 'CASCADE',
@@ -111,6 +123,14 @@ export function initTransactionModel(sequelize: Sequelize): typeof Transaction {
         {
           name: 'transactions_company_created_at_idx',
           fields: ['companyId', 'createdAt'],
+        },
+        {
+          name: 'transactions_company_user_created_at_idx',
+          fields: ['companyId', 'userId', 'createdAt'],
+        },
+        {
+          name: 'transactions_user_created_at_idx',
+          fields: ['userId', 'createdAt'],
         },
         {
           name: 'transactions_company_status_created_at_idx',
