@@ -237,3 +237,13 @@ The `/dashboard` endpoint provides a single, UX-focused API tailored for the mob
 - Comprehensive integration and unit test coverage for all scenarios
 
 This design ensures a fast, resilient, and user-friendly dashboard experience, even under backend failures or heavy load.
+
+## Step 9
+
+### Remaining Spend Endpoint
+
+- Added `GET /api/v1/companies/{companyId}/remaining-spend` to fetch detailed remaining spend for a company.
+- Implemented with clear separation of concerns and strict OpenAPI contract validation.
+- Returns ProblemDetails (RFC 7807) error responses for all error cases, including 429 (rate-limited) and 503 (circuit breaker open).
+- Full unit and integration tests for all success and error scenarios.
+- Explicit tests for rate-limiting and circuit breaker failures.

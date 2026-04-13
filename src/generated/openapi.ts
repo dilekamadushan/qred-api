@@ -459,14 +459,27 @@ export interface components {
             amount: components["schemas"]["Money"];
         };
         RemainingSpendSummary: {
-            /** @description Amount spent in minor units (e.g., ore for SEK). */
+            /**
+             * @description Amount spent in minor units (e.g., ore for SEK).
+             * @example 160050
+             */
             spent: number;
-            /** @description Credit limit in minor units (e.g., ore for SEK). */
+            /**
+             * @description Credit limit in minor units (e.g., ore for SEK).
+             * @example 500000
+             */
             limit: number;
-            /** @description Remaining spend in minor units (e.g., ore for SEK). */
+            /**
+             * @description Remaining spend in minor units (e.g., ore for SEK).
+             * @example 339950
+             */
             remaining: number;
+            /** @example 32 */
             utilizationPercent: number;
-            /** @description ISO 4217 currency code (e.g., SEK). */
+            /**
+             * @description ISO 4217 currency code (e.g., SEK).
+             * @example SEK
+             */
             currency: string;
             /** @example based on your set limit */
             label: string;
@@ -839,7 +852,9 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
+            503: components["responses"]["ServiceUnavailable"];
         };
     };
     getCardDetails: {
