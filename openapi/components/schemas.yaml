@@ -202,20 +202,25 @@ RemainingSpendSummary:
     spent:
       type: integer
       description: Amount spent in minor units (e.g., ore for SEK).
+      example: 160050
     limit:
       type: integer
       description: Credit limit in minor units (e.g., ore for SEK).
+      example: 500000
     remaining:
       type: integer
       description: Remaining spend in minor units (e.g., ore for SEK).
+      example: 339950
     utilizationPercent:
       type: integer
       minimum: 0
       maximum: 100
+      example: 32
     currency:
       type: string
       pattern: "^[A-Z]{3}$"
       description: ISO 4217 currency code (e.g., SEK).
+      example: SEK
     label:
       type: string
       example: based on your set limit

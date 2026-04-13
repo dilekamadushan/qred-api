@@ -40,6 +40,7 @@ async function queryRemainingSpend(
     };
   } catch (error) {
     logError('SpendService', `Error querying spend for companyId: ${companyId}`, error);
+
     throw new InternalServerError({ detail: 'Failed to load spend data.' });
   }
 }

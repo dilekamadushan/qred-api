@@ -45,5 +45,9 @@
         $ref: "../components/responses.yaml#/Unauthorized"
       "404":
         $ref: "../components/responses.yaml#/NotFound"
+      "429":
+        $ref: "../components/responses.yaml#/TooManyRequests"
+      "503":
+        $ref: "../components/responses.yaml#/ServiceUnavailable"
       "500":
         $ref: "../components/responses.yaml#/InternalServerError"
