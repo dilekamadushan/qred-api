@@ -1,7 +1,7 @@
 import { sharedRateLimiter } from '../../middleware/rateLimiter';
 import { Router } from 'express';
 
-import { getDefaultCard } from '../../controllers/cardsController';
+import { getDefaultCard } from '../../controllers/cards.controller';
 
 const router = Router();
 

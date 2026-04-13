@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getDashboard } from '../../controllers/dashboardController';
+import { getDashboard } from '../../controllers/dashboard.controller';
 import { sharedRateLimiter } from '../../middleware/rateLimiter';
 
 const router = Router();

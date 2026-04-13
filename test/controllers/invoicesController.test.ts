@@ -1,6 +1,6 @@
-import { getLatestInvoice } from '../../src/controllers/invoicesController';
+import { getLatestInvoice } from '../../src/controllers/invoices.controller';
 import * as InvoiceService from '../../src/services/invoices.service';
-import { DbCircuitOpenError } from '../../src/services/circuitBreaker.service';
+import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
 import { HTTP_STATUS } from '../../src/common/constants';
 
 import type { Request, Response } from 'express';
@@ -64,20 +64,15 @@ describe('invoicesController', () => {
     });
 
     describe('when no invoice is found', () => {
-      it('returns 404 problem details', async () => {
+      it('throws a 404 app error', async () => {
         jest.spyOn(InvoiceService, 'getLatestInvoiceForCompany').mockResolvedValue(null);
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getLatestInvoice(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
-        expect(res.type).toHaveBeenCalledWith('application/problem+json');
-        expect(res.json).toHaveBeenCalled();
-        // @ts-expect-error: mock property is added by jest
-        const errorPayload = res.json.mock.calls[0][0];
-        expect(errorPayload.status).toBe(HTTP_STATUS.NOT_FOUND);
-        expect(errorPayload.code).toBe('invoice_not_found');
+        await expect(getLatestInvoice(req, res)).rejects.toMatchObject({
+          status: HTTP_STATUS.NOT_FOUND,
+          code: 'invoice_not_found',
+        });
       });
     });
 

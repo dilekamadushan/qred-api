@@ -2,7 +2,7 @@ import { Card } from '../../src/db/models/card';
 import * as CardService from '../../src/services/cards.service';
 import * as LogUtils from '../../src/common/utils/logUtils';
 import { randomUUID } from 'crypto';
-import { ERROR_CODES } from '../../src/common/constants';
+import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
 
 jest.mock('../../src/db/models/card');
 
@@ -60,9 +60,9 @@ describe('CardService', () => {
       it('logs error and throws the error', async () => {
         (Card.findOne as jest.Mock).mockRejectedValueOnce(new Error('db error'));
 
-        await expect(CardService.getDefaultCardForCompany('cmp_123', 'user_123')).rejects.toThrow(
-          'db error'
-        );
+        await expect(
+          CardService.getDefaultCardForCompany('cmp_123', 'user_123')
+        ).rejects.toBeInstanceOf(InternalServerError);
 
         expect(logErrorSpy).toHaveBeenCalledWith(
           'CardService',
@@ -74,35 +74,27 @@ describe('CardService', () => {
 
     describe('when circuit breaker is open', () => {
       it('logs warn and throws the circuit breaker error', async () => {
-        const circuitBreakerError = {
-          code: ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE,
-        };
-        // Patch the circuit breaker to throw our error
+        const circuitBreakerError = new DbCircuitOpenError();
         jest
           .spyOn(CardService.defaultCardCircuitBreaker, 'execute')
           .mockRejectedValueOnce(circuitBreakerError);
 
-        await expect(CardService.getDefaultCardForCompany('cmp_123', 'user_123')).rejects.toEqual(
-          circuitBreakerError
-        );
+        await expect(
+          CardService.getDefaultCardForCompany('cmp_123', 'user_123')
+        ).rejects.toBeInstanceOf(DbCircuitOpenError);
         expect(logWarnSpy).toHaveBeenCalledWith(
           'CardService',
           expect.stringContaining('Circuit breaker is OPEN for companyId: cmp_123')
         );
       });
 
-      it('logs error for non-circuit-breaker errors', async () => {
+      it('throws InternalServerError for non-circuit-breaker errors', async () => {
         const dbError = new Error('db error');
         jest.spyOn(CardService.defaultCardCircuitBreaker, 'execute').mockRejectedValueOnce(dbError);
 
-        await expect(CardService.getDefaultCardForCompany('cmp_123', 'user_123')).rejects.toThrow(
-          'db error'
-        );
-        expect(logErrorSpy).toHaveBeenCalledWith(
-          'CardService',
-          expect.stringContaining('Database error for companyId: cmp_123'),
-          dbError
-        );
+        await expect(
+          CardService.getDefaultCardForCompany('cmp_123', 'user_123')
+        ).rejects.toBeInstanceOf(InternalServerError);
       });
     });
   });

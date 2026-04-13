@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getLatestInvoice } from '../../controllers/invoicesController';
+import { getLatestInvoice } from '../../controllers/invoices.controller';
 import { sharedRateLimiter } from '../../middleware/rateLimiter';
 
 const router = Router();

@@ -18,10 +18,15 @@ export const HTTP_STATUS = {
 } as const;
 
 export const ERROR_CODES = {
-  CIRCUIT_BREAKER_OPEN_CODE: 'CIRCUIT_OPEN',
+  CIRCUIT_BREAKER_OPEN_CODE: 'database_circuit_breaker_open',
   OPEN_API_VALIDATION_ERROR: 'format.openapi.validation',
   VALIDATION_ERROR: 'validation_error',
   INTERNAL_SERVER_ERROR: 'internal_server_error',
+  SERVICE_UNAVAILABLE: 'service_unavailable',
+  NOT_FOUND: 'not_found',
+  UNAUTHORIZED: 'unauthorized',
+  FORBIDDEN: 'forbidden',
+  RATE_LIMITED: 'rate_limited',
 } as const;
 
 export const DEFAULT_PAGE_SIZE = 10;

@@ -3,7 +3,7 @@ import app from '../../../src/app';
 import { Card, Transaction, UserCompanySpend } from '../../../src/db/models';
 import * as CardsService from '../../../src/services/cards.service';
 import * as TransactionService from '../../../src/services/transactions.service';
-import { DbCircuitOpenError } from '../../../src/services/circuitBreaker.service';
+import { DbCircuitOpenError } from '../../../src/common/errors/appHttpError';
 import {
   dashboardCompanyCircuitBreaker,
   dashboardSpendCircuitBreaker,
@@ -163,13 +163,26 @@ describe('routes', () => {
       expect(response.body.data).not.toHaveProperty('invoice');
     });
 
+    it('returns 404 when no selected company exists for the authenticated user', async () => {
+      await clearTestDatabase();
+      await addTestData({
+        users: [testUser],
+      });
+
+      const response = await request(app).get(endpoint).set('Authorization', 'Bearer test-token');
+
+      expect(response.status).toBe(404);
+      expect(response.body.code).toBe('selected_company_not_found');
+      expect(response.body.detail).toBe('No selected company found for the authenticated user.');
+    });
+
     it('returns partial data when one section fails', async () => {
       jest.spyOn(Card, 'findOne').mockRejectedValue(new Error('card db error'));
 
       const response = await request(app).get(endpoint).set('Authorization', 'Bearer test-token');
 
       expect(response.status).toBe(200);
-      expect(response.body.data.card.error).toBe('card db error');
+      expect(response.body.data.card.error).toBe('Failed to load default card data.');
       expect(response.body.data.spend.value).toBeDefined();
       expect(response.body.data.transactions.value.items).toBeDefined();
       expect(response.body.data.viewMore.value).toBeDefined();
@@ -184,9 +197,25 @@ describe('routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.company.value).toBeDefined();
       expect(response.body.data.card.value).toBeDefined();
-      expect(response.body.data.spend.error).toBe('spend db error');
-      expect(response.body.data.transactions.error).toBe('transactions db error');
-      expect(response.body.data.viewMore.error).toBe('transactions db error');
+      expect(response.body.data.spend.error).toBe('Failed to load spend data.');
+      expect(response.body.data.transactions.error).toBe(
+        'Failed to load transaction preview data.'
+      );
+      expect(response.body.data.viewMore.error).toBe('Failed to load transaction preview data.');
+    });
+
+    it('returns 503 when card, spend, and transactions all fail', async () => {
+      jest.spyOn(Card, 'findOne').mockRejectedValue(new Error('card db error'));
+      jest.spyOn(UserCompanySpend, 'findOne').mockRejectedValue(new Error('spend db error'));
+      jest.spyOn(Transaction, 'findAll').mockRejectedValue(new Error('transactions db error'));
+
+      const response = await request(app).get(endpoint).set('Authorization', 'Bearer test-token');
+
+      expect(response.status).toBe(503);
+      expect(response.body.code).toBe('service_unavailable');
+      expect(response.body.detail).toBe(
+        'Dashboard data is temporarily unavailable because all core sections failed. Please retry shortly.'
+      );
     });
 
     it('returns partial data when a dependency responds with rate limited error', async () => {
@@ -215,8 +244,8 @@ describe('routes', () => {
       expect(response.body.data.company.value).toBeDefined();
       expect(response.body.data.card.value).toBeDefined();
       expect(response.body.data.spend.value).toBeDefined();
-      expect(response.body.data.transactions.error).toBe('Circuit breaker open');
-      expect(response.body.data.viewMore.error).toBe('Circuit breaker open');
+      expect(response.body.data.transactions.error).toBe('database_circuit_breaker_open');
+      expect(response.body.data.viewMore.error).toBe('database_circuit_breaker_open');
     });
 
     it('returns 429 when rate limited', async () => {

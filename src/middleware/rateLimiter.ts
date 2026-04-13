@@ -1,6 +1,5 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { createProblemDetails, sendProblemDetails } from '../common/utils/problemDetails';
-import { HTTP_STATUS } from '../common/constants';
+import { RateLimitedError } from '../common/errors/appHttpError';
 
 const DEFAULT_WINDOW_MS = 60 * 1000; // 1 minute
 const DEFAULT_LIMIT = 10;
@@ -28,19 +27,13 @@ export function createRateLimiter(
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (request) => request.get('authorization') ?? ipKeyGenerator(request.ip ?? ''),
-    handler: (request, response) => {
-      sendProblemDetails(
-        response,
-        createProblemDetails({
-          req: request,
-          status: HTTP_STATUS.TOO_MANY_REQUESTS,
-          title: 'Too Many Requests',
+    handler: (_request, _response, next) => {
+      next(
+        new RateLimitedError({
           detail: errorMessage,
           code: errorCode,
-        }),
-        {
-          'Retry-After': String(Math.ceil(windowMs / 1000)),
-        }
+          retryAfterSeconds: Math.ceil(windowMs / 1000),
+        })
       );
     },
   });

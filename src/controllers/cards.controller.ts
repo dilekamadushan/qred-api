@@ -1,8 +1,8 @@
-import { HTTP_STATUS } from '../common/constants';
 import type { Request, Response } from 'express';
 import type { components } from '../generated/openapi';
-import { createProblemDetails, sendProblemDetails } from '../common/utils/problemDetails';
 import { getDefaultCardForCompany } from '../services/cards.service';
+import { HTTP_STATUS } from '../common/constants';
+import { NotFoundError } from '../common/errors/appHttpError';
 
 export async function getDefaultCard(request: Request, response: Response) {
   // Errors are intentionally forwarded to the global error handler middleware.
@@ -10,17 +10,12 @@ export async function getDefaultCard(request: Request, response: Response) {
   const userId = request.user!.userId;
   const card = await getDefaultCardForCompany(companyId as string, userId);
 
-  if (!card)
-    return sendProblemDetails(
-      response,
-      createProblemDetails({
-        req: request,
-        status: HTTP_STATUS.NOT_FOUND,
-        title: 'Not found',
-        detail: `No default card exists for company ${companyId}.`,
-        code: 'default_card_not_found',
-      })
-    );
+  if (!card) {
+    throw new NotFoundError({
+      detail: `No default card exists for company ${companyId}.`,
+      code: 'default_card_not_found',
+    });
+  }
 
   return response.status(HTTP_STATUS.OK).json(card as components['schemas']['CardSummary']);
 }

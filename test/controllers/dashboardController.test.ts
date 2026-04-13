@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../../src/common/constants';
-import { getDashboard } from '../../src/controllers/dashboardController';
-import { DbCircuitOpenError } from '../../src/services/circuitBreaker.service';
+import { getDashboard } from '../../src/controllers/dashboard.controller';
+import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
 import * as DashboardService from '../../src/services/dashboard.service';
 
 const mockRequest = (
@@ -28,67 +28,98 @@ describe('dashboardController', () => {
   });
 
   describe('getDashboard', () => {
-    it('returns 200 and dashboard data when service succeeds', async () => {
-      const data = {
-        company: { value: { id: 'cmp_1', name: 'Company AB', hasMoreCompanies: true } },
-        card: {
-          value: { id: 'card_1', status: 'active', artworkUrl: 'https://cdn.example.com/a' },
-        },
-        spend: { value: { used: 1000, total: 5000, currency: 'SEK' } },
-        transactions: { value: { items: [] } },
-        viewMore: { value: { remainingTransactions: 0 } },
-      };
+    describe('when dashboard data is available', () => {
+      it('returns 200 and dashboard payload', async () => {
+        const data = {
+          company: { value: { id: 'cmp_1', name: 'Company AB', hasMoreCompanies: true } },
+          card: {
+            value: { id: 'card_1', status: 'active', artworkUrl: 'https://cdn.example.com/a' },
+          },
+          spend: { value: { used: 1000, total: 5000, currency: 'SEK' } },
+          transactions: { value: { items: [] } },
+          viewMore: { value: { remainingTransactions: 0 } },
+        };
 
-      jest
-        .spyOn(DashboardService, 'getDashboardForUser')
-        .mockResolvedValue(
-          data as Awaited<ReturnType<typeof DashboardService.getDashboardForUser>>
-        );
+        jest
+          .spyOn(DashboardService, 'getDashboardForUser')
+          .mockResolvedValue(
+            data as Awaited<ReturnType<typeof DashboardService.getDashboardForUser>>
+          );
 
-      const req = mockRequest({ transactionPreviewLimit: '5' });
-      const res = mockResponse();
+        const req = mockRequest({ transactionPreviewLimit: '5' });
+        const res = mockResponse();
 
-      await getDashboard(req, res);
+        await getDashboard(req, res);
 
-      expect(DashboardService.getDashboardForUser).toHaveBeenCalledWith('test-user-id', 5);
-      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
-      expect(res.json).toHaveBeenCalledWith({ data });
+        expect(DashboardService.getDashboardForUser).toHaveBeenCalledWith('test-user-id', 5);
+        expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+        expect(res.json).toHaveBeenCalledWith({ data });
+      });
     });
 
-    it('returns 404 when selected company is not found', async () => {
-      jest.spyOn(DashboardService, 'getDashboardForUser').mockResolvedValue(null);
+    describe('when selected company is not found', () => {
+      it('throws a 404 app error', async () => {
+        jest.spyOn(DashboardService, 'getDashboardForUser').mockResolvedValue(null);
 
-      const req = mockRequest();
-      const res = mockResponse();
+        const req = mockRequest();
+        const res = mockResponse();
 
-      await getDashboard(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
-      expect(res.type).toHaveBeenCalledWith('application/problem+json');
-      // @ts-expect-error mock property is added by jest
-      const payload = res.json.mock.calls[0][0];
-      expect(payload.code).toBe('selected_company_not_found');
+        await expect(getDashboard(req, res)).rejects.toMatchObject({
+          status: HTTP_STATUS.NOT_FOUND,
+          code: 'selected_company_not_found',
+        });
+      });
     });
 
-    it('returns 503 when circuit breaker is open', async () => {
-      jest
-        .spyOn(DashboardService, 'getDashboardForUser')
-        .mockRejectedValue(new DbCircuitOpenError());
+    describe('when circuit breaker is open', () => {
+      it('propagates the dependency error', async () => {
+        jest
+          .spyOn(DashboardService, 'getDashboardForUser')
+          .mockRejectedValue(new DbCircuitOpenError());
 
-      const req = mockRequest();
-      const res = mockResponse();
+        const req = mockRequest();
+        const res = mockResponse();
 
-      await expect(getDashboard(req, res)).rejects.toBeInstanceOf(DbCircuitOpenError);
+        await expect(getDashboard(req, res)).rejects.toBeInstanceOf(DbCircuitOpenError);
+      });
     });
 
-    it('calls next(error) for unexpected failures', async () => {
-      const error = new Error('unexpected');
-      jest.spyOn(DashboardService, 'getDashboardForUser').mockRejectedValue(error);
+    describe('when all dashboard core sections fail', () => {
+      it('throws a 503 app error', async () => {
+        const data = {
+          company: { value: { id: 'cmp_1', name: 'Company AB', hasMoreCompanies: false } },
+          card: { error: 'card error' },
+          spend: { error: 'spend error' },
+          transactions: { error: 'transactions error' },
+          viewMore: { error: 'transactions error' },
+        };
 
-      const req = mockRequest();
-      const res = mockResponse();
+        jest
+          .spyOn(DashboardService, 'getDashboardForUser')
+          .mockResolvedValue(
+            data as Awaited<ReturnType<typeof DashboardService.getDashboardForUser>>
+          );
 
-      await expect(getDashboard(req, res)).rejects.toThrow('unexpected');
+        const req = mockRequest();
+        const res = mockResponse();
+
+        await expect(getDashboard(req, res)).rejects.toMatchObject({
+          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+          code: 'service_unavailable',
+        });
+      });
+    });
+
+    describe('when an unexpected error occurs', () => {
+      it('propagates the error to middleware', async () => {
+        const error = new Error('unexpected');
+        jest.spyOn(DashboardService, 'getDashboardForUser').mockRejectedValue(error);
+
+        const req = mockRequest();
+        const res = mockResponse();
+
+        await expect(getDashboard(req, res)).rejects.toThrow('unexpected');
+      });
     });
   });
 });

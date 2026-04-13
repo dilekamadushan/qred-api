@@ -10,6 +10,8 @@
       of the latest transactions. (Invoice details are not included.)
 
       This endpoint is an aggregated read model. The backend fetches data from multiple services in parallel, with timeouts and fallbacks. If some sections are unavailable, the API returns partial data with per-section status, allowing the UI to render what is available immediately and show loading/error states for missing sections. This keeps the UX fast and resilient, while still supporting granular endpoints for advanced flows.
+
+      If all three core sections (`card`, `spend`, and `transactions`) fail in the same request, the endpoint responds with `503 Service Unavailable` and a Problem Details body instead of `200`.
     parameters:
       - name: transactionPreviewLimit
         in: query

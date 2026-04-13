@@ -2,6 +2,7 @@ import { Transaction } from '../../src/db/models/transaction';
 import * as TransactionService from '../../src/services/transactions.service';
 import * as LogUtils from '../../src/common/utils/logUtils';
 import { Op } from 'sequelize';
+import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
 
 jest.mock('../../src/db/models/transaction');
 
@@ -26,9 +27,11 @@ function createMockTransaction(overrides = {}) {
 
 describe('TransactionService', () => {
   let logErrorSpy: jest.SpyInstance;
+  let logWarnSpy: jest.SpyInstance;
 
   beforeEach(() => {
     logErrorSpy = jest.spyOn(LogUtils, 'logError').mockImplementation(() => {});
+    logWarnSpy = jest.spyOn(LogUtils, 'logWarn').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -98,12 +101,40 @@ describe('TransactionService', () => {
       (Transaction.findAll as jest.Mock).mockRejectedValueOnce(new Error('db error'));
       await expect(
         TransactionService.getTransactionsForCompany('cmp_123', 'user_123')
-      ).rejects.toThrow('db error');
+      ).rejects.toBeInstanceOf(InternalServerError);
       expect(logErrorSpy).toHaveBeenCalledWith(
         'TransactionService',
-        expect.stringContaining('Database error'),
+        expect.stringContaining('Error querying transactions'),
         expect.any(Error)
       );
+    });
+
+    describe('when circuit breaker execution fails', () => {
+      it('rethrows DbCircuitOpenError and logs warning', async () => {
+        const error = new DbCircuitOpenError();
+        jest
+          .spyOn(TransactionService.transactionsCircuitBreaker, 'execute')
+          .mockRejectedValueOnce(error);
+
+        await expect(
+          TransactionService.getTransactionsForCompany('cmp_123', 'user_123')
+        ).rejects.toBeInstanceOf(DbCircuitOpenError);
+
+        expect(logWarnSpy).toHaveBeenCalledWith(
+          'TransactionService',
+          expect.stringContaining('Circuit breaker is OPEN for companyId: cmp_123')
+        );
+      });
+
+      it('maps non-circuit errors to InternalServerError', async () => {
+        jest
+          .spyOn(TransactionService.transactionsCircuitBreaker, 'execute')
+          .mockRejectedValueOnce(new Error('breaker failure'));
+
+        await expect(
+          TransactionService.getTransactionsForCompany('cmp_123', 'user_123')
+        ).rejects.toBeInstanceOf(InternalServerError);
+      });
     });
   });
 
@@ -158,6 +189,34 @@ describe('TransactionService', () => {
       });
       expect(Transaction.count).toHaveBeenCalledWith({
         where: { companyId: 'cmp_123', userId: 'user_123' },
+      });
+    });
+
+    describe('when circuit breaker execution fails', () => {
+      it('rethrows DbCircuitOpenError and logs warning', async () => {
+        const error = new DbCircuitOpenError();
+        jest
+          .spyOn(TransactionService.transactionsCircuitBreaker, 'execute')
+          .mockRejectedValueOnce(error);
+
+        await expect(
+          TransactionService.getTransactionPreviewForCompany('cmp_123', 'user_123', 2)
+        ).rejects.toBeInstanceOf(DbCircuitOpenError);
+
+        expect(logWarnSpy).toHaveBeenCalledWith(
+          'TransactionService',
+          expect.stringContaining('Circuit breaker is OPEN for companyId: cmp_123')
+        );
+      });
+
+      it('maps non-circuit errors to InternalServerError', async () => {
+        jest
+          .spyOn(TransactionService.transactionsCircuitBreaker, 'execute')
+          .mockRejectedValueOnce(new Error('breaker failure'));
+
+        await expect(
+          TransactionService.getTransactionPreviewForCompany('cmp_123', 'user_123', 2)
+        ).rejects.toBeInstanceOf(InternalServerError);
       });
     });
   });

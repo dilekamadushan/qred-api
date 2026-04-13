@@ -1,6 +1,6 @@
-import { getTransactions } from '../../src/controllers/transactionsController';
+import { getTransactions } from '../../src/controllers/transactions.controller';
 import * as TransactionService from '../../src/services/transactions.service';
-import { DbCircuitOpenError } from '../../src/services/circuitBreaker.service';
+import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
 import { HTTP_STATUS } from '../../src/common/constants';
 
 import type { Request, Response } from 'express';

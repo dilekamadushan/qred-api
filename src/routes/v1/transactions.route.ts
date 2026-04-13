@@ -1,6 +1,6 @@
 import { sharedRateLimiter } from '../../middleware/rateLimiter';
 import { Router } from 'express';
-import { getTransactions } from '../../controllers/transactionsController';
+import { getTransactions } from '../../controllers/transactions.controller';
 
 const router = Router();
 

@@ -8,6 +8,7 @@ import {
 import * as CardsService from '../../src/services/cards.service';
 import * as SpendService from '../../src/services/spend.service';
 import * as TransactionService from '../../src/services/transactions.service';
+import * as LogUtils from '../../src/common/utils/logUtils';
 
 jest.mock('../../src/db/models/company');
 jest.mock('../../src/db/models/user-company-membership');
@@ -195,6 +196,22 @@ describe('dashboard.service', () => {
         throw new Error('Expected dashboard result');
       }
       expect(result.company.value?.id).toBe('cmp_2');
+    });
+
+    describe('when top-level dashboard assembly fails', () => {
+      it('logs and rethrows the error', async () => {
+        const logErrorSpy = jest.spyOn(LogUtils, 'logError').mockImplementation(() => {});
+        const error = new Error('company breaker failed');
+        dashboardCompanyCircuitBreaker.execute = jest.fn().mockRejectedValueOnce(error);
+
+        await expect(getDashboardForUser('user_1', 3)).rejects.toThrow('company breaker failed');
+
+        expect(logErrorSpy).toHaveBeenCalledWith(
+          'DashboardService',
+          expect.stringContaining('Failed to build dashboard for userId: user_1'),
+          error
+        );
+      });
     });
   });
 });

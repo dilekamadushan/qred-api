@@ -1,7 +1,5 @@
-import {
-  DbCircuitOpenError,
-  createDbCircuitBreaker,
-} from '../../src/services/circuitBreaker.service';
+import { createDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
+import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
 
 describe('circuitBreaker.service', () => {
   describe('createDbCircuitBreaker', () => {

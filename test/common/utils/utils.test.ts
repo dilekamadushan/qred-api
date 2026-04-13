@@ -1,16 +1,16 @@
-import { buildTransactionQueryOptions } from '../../src/common/utils/transactions';
+import { buildTransactionQueryOptions } from '../../../src/common/utils/transactions';
 import {
   buildPaginationLinks,
   decodeCursor,
   encodeCursor,
-} from '../../src/common/utils/pagination';
+} from '../../../src/common/utils/pagination';
 import type { Request, Response } from 'express';
-import type { ProblemDetails } from '../../src/common/types/types';
+import type { ProblemDetails } from '../../../src/common/types/types';
 import {
   createProblemDetails,
   createProblemDetailsWithoutRequest,
   sendProblemDetails,
-} from '../../src/common/utils/problemDetails';
+} from '../../../src/common/utils/problemDetails';
 
 describe('utils/transactions', () => {
   describe('buildTransactionQueryOptions', () => {

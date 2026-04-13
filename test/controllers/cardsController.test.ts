@@ -1,6 +1,6 @@
-import { getDefaultCard } from '../../src/controllers/cardsController';
+import { getDefaultCard } from '../../src/controllers/cards.controller';
 import * as CardService from '../../src/services/cards.service';
-import { DbCircuitOpenError } from '../../src/services/circuitBreaker.service';
+import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
 import { HTTP_STATUS } from '../../src/common/constants';
 import { randomUUID } from 'crypto';
 
@@ -53,19 +53,15 @@ describe('cardsController', () => {
     });
 
     describe('when no card is found', () => {
-      it('returns 404', async () => {
+      it('throws a 404 app error', async () => {
         jest.spyOn(CardService, 'getDefaultCardForCompany').mockResolvedValue(null);
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 
-        await getDefaultCard(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
-        expect(res.json).toHaveBeenCalled();
-        // @ts-expect-error: mock property is added by jest
-        const errorPayload = res.json.mock.calls[0][0];
-        expect(errorPayload.status).toBe(HTTP_STATUS.NOT_FOUND);
-        expect(errorPayload.code).toBe('default_card_not_found');
+        await expect(getDefaultCard(req, res)).rejects.toMatchObject({
+          status: HTTP_STATUS.NOT_FOUND,
+          code: 'default_card_not_found',
+        });
       });
     });
 

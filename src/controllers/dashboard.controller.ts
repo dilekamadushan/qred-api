@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../common/constants';
-import { createProblemDetails, sendProblemDetails } from '../common/utils/problemDetails';
 import { getDashboardForUser } from '../services/dashboard.service';
+import { NotFoundError, ServiceUnavailableError } from '../common/errors/appHttpError';
+import { hasSectionError } from '../common/utils/dashboard';
 
 const DEFAULT_TRANSACTION_PREVIEW_LIMIT = 3;
 
@@ -15,16 +16,22 @@ export async function getDashboard(request: Request, response: Response) {
   const data = await getDashboardForUser(userId, transactionPreviewLimit);
 
   if (!data) {
-    return sendProblemDetails(
-      response,
-      createProblemDetails({
-        req: request,
-        status: HTTP_STATUS.NOT_FOUND,
-        title: 'Not found',
-        detail: 'No selected company found for the authenticated user.',
-        code: 'selected_company_not_found',
-      })
-    );
+    throw new NotFoundError({
+      detail: 'No selected company found for the authenticated user.',
+      code: 'selected_company_not_found',
+    });
+  }
+
+  if (
+    hasSectionError(data.card) &&
+    hasSectionError(data.spend) &&
+    hasSectionError(data.transactions)
+  ) {
+    throw new ServiceUnavailableError({
+      detail:
+        'Dashboard data is temporarily unavailable because all core sections failed. Please retry shortly.',
+      code: 'service_unavailable',
+    });
   }
 
   return response.status(HTTP_STATUS.OK).json({ data });

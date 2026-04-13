@@ -1,6 +1,5 @@
 import type { WhereOptions } from 'sequelize';
 import { Op } from 'sequelize';
-import type { GenericError } from '../common/types/types';
 import type {
   CursorPayload,
   PageInfo,
@@ -13,9 +12,10 @@ import { Transaction } from '../db/models/transaction';
 import { decodeCursor, encodeCursor } from '../common/utils/pagination';
 import { sharedDbCircuitBreaker } from './circuitBreaker.service';
 import { logError, logWarn } from '../common/utils/logUtils';
-import { DEFAULT_PAGE_SIZE, ERROR_CODES, SORT_ORDER } from '../common/constants';
+import { DEFAULT_PAGE_SIZE, SORT_ORDER } from '../common/constants';
 import type { Transaction as TransactionModel } from '../db/models/transaction';
 import type { InferAttributes } from 'sequelize';
+import { DbCircuitOpenError, InternalServerError } from '../common/errors/appHttpError';
 
 function buildWhereClauses(
   companyId: string,
@@ -151,7 +151,7 @@ async function queryTransactions(
       `Error querying transactions for companyId: ${companyId}`,
       error
     );
-    throw error;
+    throw new InternalServerError({ detail: 'Failed to load transactions data.' });
   }
 }
 
@@ -192,7 +192,7 @@ async function queryTransactionPreview(
       `Error querying transaction preview for companyId: ${companyId}`,
       error
     );
-    throw error;
+    throw new InternalServerError({ detail: 'Failed to load transaction preview data.' });
   }
 }
 
@@ -208,13 +208,12 @@ export async function getTransactionsForCompany(
       queryTransactions(companyId, userId, options)
     );
   } catch (error) {
-    const err = error as GenericError;
-    if (err.code === ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE) {
+    if (error instanceof DbCircuitOpenError) {
       logWarn('TransactionService', `Circuit breaker is OPEN for companyId: ${companyId}`);
-    } else {
-      logError('TransactionService', `Database error for companyId: ${companyId}`, error);
+      throw error;
     }
-    throw error;
+
+    throw new InternalServerError({ detail: 'Failed to load transactions data.' });
   }
 }
 
@@ -228,12 +227,11 @@ export async function getTransactionPreviewForCompany(
       queryTransactionPreview(companyId, userId, previewLimit)
     );
   } catch (error) {
-    const err = error as GenericError;
-    if (err.code === ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE) {
+    if (error instanceof DbCircuitOpenError) {
       logWarn('TransactionService', `Circuit breaker is OPEN for companyId: ${companyId}`);
-    } else {
-      logError('TransactionService', `Database error for companyId: ${companyId}`, error);
+      throw error;
     }
-    throw error;
+
+    throw new InternalServerError({ detail: 'Failed to load transaction preview data.' });
   }
 }

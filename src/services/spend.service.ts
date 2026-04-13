@@ -1,9 +1,8 @@
 import type { components } from '../generated/openapi';
-import type { GenericError } from '../common/types/types';
-import { ERROR_CODES } from '../common/constants';
 import { logError, logWarn } from '../common/utils/logUtils';
 import { UserCompanySpend } from '../db/models/user-company-spend';
 import { sharedDbCircuitBreaker } from './circuitBreaker.service';
+import { DbCircuitOpenError, InternalServerError } from '../common/errors/appHttpError';
 
 type RemainingSpendSummary = components['schemas']['RemainingSpendSummary'];
 
@@ -41,7 +40,7 @@ async function queryRemainingSpend(
     };
   } catch (error) {
     logError('SpendService', `Error querying spend for companyId: ${companyId}`, error);
-    throw error;
+    throw new InternalServerError({ detail: 'Failed to load spend data.' });
   }
 }
 
@@ -54,13 +53,12 @@ export async function getRemainingSpendForCompany(
   try {
     return await remainingSpendCircuitBreaker.execute(() => queryRemainingSpend(userId, companyId));
   } catch (error) {
-    const genericError = error as GenericError;
-    if (genericError.code === ERROR_CODES.CIRCUIT_BREAKER_OPEN_CODE) {
+    if (error instanceof DbCircuitOpenError) {
       logWarn('SpendService', `Circuit breaker is OPEN for companyId: ${companyId}`);
-    } else {
-      logError('SpendService', `Database error for companyId: ${companyId}`, error);
+      throw error;
     }
-    throw error;
+
+    throw new InternalServerError({ detail: 'Failed to load spend data.' });
   }
 }
 

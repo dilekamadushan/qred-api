@@ -1,4 +1,5 @@
 import CircuitBreaker from 'opossum';
+import { DbCircuitOpenError } from '../common/errors/appHttpError';
 
 export type DbCircuitBreakerOptions = {
   timeout?: number;
@@ -13,15 +14,6 @@ const defaultOptions: Required<DbCircuitBreakerOptions> = {
   resetTimeout: 5000,
   volumeThreshold: 5,
 };
-
-export class DbCircuitOpenError extends Error {
-  readonly code = 'CIRCUIT_OPEN';
-
-  constructor() {
-    super('Circuit breaker open');
-    this.name = 'DbCircuitOpenError';
-  }
-}
 
 function isOpenCircuitError(error: unknown) {
   return error instanceof Error && error.message.toLowerCase().includes('breaker is open');

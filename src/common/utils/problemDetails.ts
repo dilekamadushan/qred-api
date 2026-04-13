@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import type { Request, Response } from 'express';
 import type { InvalidField, ProblemDetails } from '../types/types';
 
-export function createProblemDetails({
+export const createProblemDetails = ({
   req,
   status,
   title,
@@ -17,7 +17,7 @@ export function createProblemDetails({
   detail: string;
   code: string;
   errors?: InvalidField[] | null;
-}): ProblemDetails {
+}): ProblemDetails => {
   return {
     type: `https://api.qred.example.com/problems/${code}`,
     title,
@@ -28,9 +28,9 @@ export function createProblemDetails({
     code,
     errors,
   };
-}
+};
 
-export function createProblemDetailsWithoutRequest({
+export const createProblemDetailsWithoutRequest = ({
   status,
   title,
   detail,
@@ -44,7 +44,7 @@ export function createProblemDetailsWithoutRequest({
   code: string;
   instance?: string | null;
   errors?: InvalidField[] | null;
-}): ProblemDetails {
+}): ProblemDetails => {
   return {
     type: `https://api.qred.example.com/problems/${code}`,
     title,
@@ -55,16 +55,16 @@ export function createProblemDetailsWithoutRequest({
     code,
     errors,
   };
-}
+};
 
-export function sendProblemDetails(
+export const sendProblemDetails = (
   res: Response,
   problem: ProblemDetails,
   headers?: Record<string, string>
-) {
+) => {
   Object.entries(headers ?? {}).forEach(([name, value]) => {
     res.setHeader(name, value);
   });
 
   return res.status(problem.status).type('application/problem+json').json(problem);
-}
+};
