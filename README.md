@@ -247,3 +247,11 @@ This design ensures a fast, resilient, and user-friendly dashboard experience, e
 - Returns ProblemDetails (RFC 7807) error responses for all error cases, including 429 (rate-limited) and 503 (circuit breaker open).
 - Full unit and integration tests for all success and error scenarios.
 - Explicit tests for rate-limiting and circuit breaker failures.
+
+### Step 10
+
+- Added `GET /api/v1/companies/` to fetch companies for user.
+- Implemented with clear separation of concerns and strict OpenAPI contract validation.
+- Returns ProblemDetails (RFC 7807) error responses for all error cases, including 429 (rate-limited) and 503 (circuit breaker open).
+- Full unit and integration tests for all success and error scenarios.
+- Explicit tests for rate-limiting and circuit breaker failures.
