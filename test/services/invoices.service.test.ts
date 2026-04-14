@@ -1,7 +1,6 @@
 import { Invoice } from '../../src/db/models/invoice';
 import { getLatestInvoiceForCompany } from '../../src/services/invoices.service';
-import { latestInvoiceCircuitBreaker } from '../../src/services/invoices.service';
-import { logWarn } from '../../src/common/utils/logUtils';
+import { sharedDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
 import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
 
 jest.mock('../../src/db/models/invoice');
@@ -17,7 +16,7 @@ describe('invoices.service', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      latestInvoiceCircuitBreaker.execute = mockBreaker.execute;
+      sharedDbCircuitBreaker.execute = mockBreaker.execute;
     });
 
     describe('when circuit breaker execution succeeds', () => {
@@ -41,23 +40,17 @@ describe('invoices.service', () => {
     });
 
     describe('when circuit breaker execution fails', () => {
-      it('throws DbCircuitOpenError if breaker is open and logs warning', async () => {
+      it('throws DbCircuitOpenError if breaker is open', async () => {
         const error = new DbCircuitOpenError();
         mockBreaker.execute.mockRejectedValueOnce(error);
 
         await expect(getLatestInvoiceForCompany(companyId)).rejects.toThrow(DbCircuitOpenError);
-        expect(logWarn).toHaveBeenCalledWith(
-          'InvoiceService',
-          expect.stringContaining(`Circuit breaker is OPEN for companyId: ${companyId}`)
-        );
       });
 
-      it('throws InternalServerError for non-circuit-breaker errors', async () => {
+      it('propagates non-circuit-breaker errors', async () => {
         mockBreaker.execute.mockRejectedValueOnce(new Error('db error'));
 
-        await expect(getLatestInvoiceForCompany(companyId)).rejects.toBeInstanceOf(
-          InternalServerError
-        );
+        await expect(getLatestInvoiceForCompany(companyId)).rejects.toThrow('db error');
       });
     });
   });

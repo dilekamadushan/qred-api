@@ -1,3 +1,5 @@
+import type { DbCircuitBreakerOptions } from './types/types';
+
 export const SORT_ORDER = {
   ASC: 'asc',
   DESC: 'desc',
@@ -37,3 +39,12 @@ export const CARD_STATUS = {
   BLOCKED: 'blocked',
   CLOSED: 'closed',
 } as const;
+
+export const defaultCircuitBreakerOptions: Required<DbCircuitBreakerOptions> = {
+  timeout: 3000,
+  errorThresholdPercentage: 50,
+  resetTimeout: 5000,
+  volumeThreshold: 5,
+};
+
+export const DASHBOARD_SECTION_TIMEOUT_MS = 1200;

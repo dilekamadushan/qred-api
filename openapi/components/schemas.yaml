@@ -374,45 +374,4 @@ ResponseMeta:
       format: date-time
       nullable: true
 
-ProblemDetails:
-  type: object
-  required: [type, title, status, detail, requestId, code]
-  properties:
-    type:
-      type: string
-      format: uri
-      example: https://api.qred.example.com/problems/validation-error
-    title:
-      type: string
-      example: Validation error
-    status:
-      type: integer
-      minimum: 400
-      maximum: 599
-    detail:
-      type: string
-    instance:
-      type: string
-      format: uri
-      nullable: true
-    requestId:
-      type: string
-    code:
-      type: string
-      example: validation_error
-    errors:
-      type: array
-      nullable: true
-      items:
-        $ref: "#/InvalidField"
 
-InvalidField:
-  type: object
-  required: [field, reason]
-  properties:
-    field:
-      type: string
-      example: transactionPreviewLimit
-    reason:
-      type: string
-      example: Must be between 1 and 10.

@@ -6,6 +6,29 @@ interface PageInfo {
   nextCursor?: string | null;
 }
 
+export const buildCursorPage = <T>(
+  rows: T[],
+  pageSize: number,
+  createCursorPayload: (lastItem: T) => Record<string, unknown>
+): { pageItems: T[]; page: PageInfo } => {
+  const hasMore = rows.length > pageSize;
+  const pageItems = rows.slice(0, pageSize);
+
+  const nextCursor =
+    hasMore && pageItems.length > 0
+      ? encodeCursor(createCursorPayload(pageItems[pageItems.length - 1]))
+      : null;
+
+  return {
+    pageItems,
+    page: {
+      nextCursor,
+      pageSize,
+      hasMore,
+    },
+  };
+};
+
 export const buildPaginationLinks = (
   request: Request,
   page: PageInfo

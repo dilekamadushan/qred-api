@@ -3,7 +3,7 @@ import app from '../../../src/app';
 import { addTestData, clearTestDatabase, setupTestDb } from '../../helpers/testDbUtils';
 import { uuid } from '../../../src/db/seed/seed';
 import { UserCompanySpend } from '../../../src/db/models';
-import { remainingSpendCircuitBreaker } from '../../../src/services/spend.service';
+import { sharedDbCircuitBreaker } from '../../../src/services/circuitBreaker.service';
 
 const companyId = uuid.cmp1;
 const endpoint = `/api/v1/companies/${companyId}/remaining-spend`;
@@ -17,8 +17,8 @@ describe('routes', () => {
 
     beforeEach(async () => {
       await clearTestDatabase();
-      await remainingSpendCircuitBreaker.reset();
-      await remainingSpendCircuitBreaker.updateOptions({
+      await sharedDbCircuitBreaker.reset();
+      await sharedDbCircuitBreaker.updateOptions({
         timeout: 2500,
         errorThresholdPercentage: 100,
         resetTimeout: 5000,
@@ -28,7 +28,7 @@ describe('routes', () => {
     });
 
     afterEach(async () => {
-      await remainingSpendCircuitBreaker.reset();
+      await sharedDbCircuitBreaker.reset();
       jest.restoreAllMocks();
     });
 
@@ -113,7 +113,7 @@ describe('routes', () => {
 
       describe('when circuit breaker is open', () => {
         it('returns 503 when circuit breaker is open', async () => {
-          await remainingSpendCircuitBreaker.updateOptions({
+          await sharedDbCircuitBreaker.updateOptions({
             errorThresholdPercentage: 50,
             volumeThreshold: 2,
             resetTimeout: 5000,

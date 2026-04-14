@@ -1,11 +1,17 @@
 import { Op } from 'sequelize';
-import type { components } from '../generated/openapi';
 import { Card } from '../db/models/card';
 import { sharedDbCircuitBreaker } from './circuitBreaker.service';
 import { logError, logWarn } from '../common/utils/logUtils';
-import { DbCircuitOpenError, InternalServerError } from '../common/errors/appHttpError';
+import { InternalServerError } from '../common/errors/appHttpError';
 
-type CardSummary = components['schemas']['CardSummary'];
+import type { CardSummary } from '../common/types/types';
+
+export function getDefaultCardForCompany(
+  companyId: string,
+  userId: string
+): Promise<CardSummary | null> {
+  return sharedDbCircuitBreaker.execute(() => queryDefaultCard(companyId, userId));
+}
 
 async function queryDefaultCard(companyId: string, userId: string): Promise<CardSummary | null> {
   try {
@@ -37,26 +43,6 @@ async function queryDefaultCard(companyId: string, userId: string): Promise<Card
     return card as CardSummary;
   } catch (error) {
     logError('CardService', `Error querying default card for companyId: ${companyId}`, error);
-    throw new InternalServerError({
-      detail: 'Failed to load default card data.',
-    });
-  }
-}
-
-export const defaultCardCircuitBreaker = sharedDbCircuitBreaker;
-
-export async function getDefaultCardForCompany(
-  companyId: string,
-  userId: string
-): Promise<CardSummary | null> {
-  try {
-    return await defaultCardCircuitBreaker.execute(() => queryDefaultCard(companyId, userId));
-  } catch (error) {
-    if (error instanceof DbCircuitOpenError) {
-      logWarn('CardService', `Circuit breaker is OPEN for companyId: ${companyId}`);
-      throw error;
-    }
-
     throw new InternalServerError({
       detail: 'Failed to load default card data.',
     });

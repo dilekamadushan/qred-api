@@ -3,6 +3,7 @@ import * as CardService from '../../src/services/cards.service';
 import * as LogUtils from '../../src/common/utils/logUtils';
 import { randomUUID } from 'crypto';
 import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
+import { sharedDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
 
 jest.mock('../../src/db/models/card');
 
@@ -72,29 +73,23 @@ describe('CardService', () => {
       });
     });
 
-    describe('when circuit breaker is open', () => {
-      it('logs warn and throws the circuit breaker error', async () => {
+    describe('when circuit breaker execution fails', () => {
+      it('rethrows DbCircuitOpenError', async () => {
         const circuitBreakerError = new DbCircuitOpenError();
-        jest
-          .spyOn(CardService.defaultCardCircuitBreaker, 'execute')
-          .mockRejectedValueOnce(circuitBreakerError);
+        jest.spyOn(sharedDbCircuitBreaker, 'execute').mockRejectedValueOnce(circuitBreakerError);
 
         await expect(
           CardService.getDefaultCardForCompany('cmp_123', 'user_123')
         ).rejects.toBeInstanceOf(DbCircuitOpenError);
-        expect(logWarnSpy).toHaveBeenCalledWith(
-          'CardService',
-          expect.stringContaining('Circuit breaker is OPEN for companyId: cmp_123')
-        );
       });
 
-      it('throws InternalServerError for non-circuit-breaker errors', async () => {
+      it('propagates non-circuit-breaker errors', async () => {
         const dbError = new Error('db error');
-        jest.spyOn(CardService.defaultCardCircuitBreaker, 'execute').mockRejectedValueOnce(dbError);
+        jest.spyOn(sharedDbCircuitBreaker, 'execute').mockRejectedValueOnce(dbError);
 
-        await expect(
-          CardService.getDefaultCardForCompany('cmp_123', 'user_123')
-        ).rejects.toBeInstanceOf(InternalServerError);
+        await expect(CardService.getDefaultCardForCompany('cmp_123', 'user_123')).rejects.toThrow(
+          'db error'
+        );
       });
     });
   });

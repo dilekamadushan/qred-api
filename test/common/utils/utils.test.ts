@@ -1,5 +1,6 @@
 import { buildTransactionQueryOptions } from '../../../src/common/utils/transactions';
 import {
+  buildCursorPage,
   buildPaginationLinks,
   decodeCursor,
   encodeCursor,
@@ -180,5 +181,37 @@ describe('buildPaginationLinks', () => {
     );
 
     expect(next).toBeNull();
+  });
+});
+
+describe('buildCursorPage', () => {
+  it('should return pageItems and page metadata with nextCursor when hasMore', () => {
+    const rows = [
+      { id: 'a', createdAt: '2026-04-10T10:00:00.000Z' },
+      { id: 'b', createdAt: '2026-04-09T10:00:00.000Z' },
+    ];
+
+    const result = buildCursorPage(rows, 1, (last) => ({
+      id: last.id,
+      createdAt: last.createdAt,
+    }));
+
+    expect(result.pageItems).toHaveLength(1);
+    expect(result.page.hasMore).toBe(true);
+    expect(result.page.pageSize).toBe(1);
+    expect(result.page.nextCursor).toBeTruthy();
+  });
+
+  it('should return null nextCursor when there are no more rows', () => {
+    const rows = [{ id: 'a', createdAt: '2026-04-10T10:00:00.000Z' }];
+
+    const result = buildCursorPage(rows, 10, (last) => ({
+      id: last.id,
+      createdAt: last.createdAt,
+    }));
+
+    expect(result.pageItems).toHaveLength(1);
+    expect(result.page.hasMore).toBe(false);
+    expect(result.page.nextCursor).toBeNull();
   });
 });

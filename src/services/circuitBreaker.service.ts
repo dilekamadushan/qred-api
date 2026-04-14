@@ -1,29 +1,37 @@
 import CircuitBreaker from 'opossum';
 import { DbCircuitOpenError } from '../common/errors/appHttpError';
+import type { DbCircuitBreakerOptions } from '../common/types/types';
+import { isOpenCircuitError } from '../common/utils/circuitBreaker';
+import { defaultCircuitBreakerOptions } from '../common/constants';
+import { logWarn } from '../common/utils/logUtils';
 
-export type DbCircuitBreakerOptions = {
-  timeout?: number;
-  errorThresholdPercentage?: number;
-  resetTimeout?: number;
-  volumeThreshold?: number;
+export const sharedDbCircuitBreaker = {
+  execute<T>(action: () => Promise<T>): Promise<T> {
+    return sharedBreakerInternal.execute(action) as Promise<T>;
+  },
+  async reset() {
+    await sharedBreakerInternal.reset();
+  },
+  async updateOptions(nextOptions: Partial<DbCircuitBreakerOptions>) {
+    await sharedBreakerInternal.updateOptions(nextOptions);
+  },
 };
 
-const defaultOptions: Required<DbCircuitBreakerOptions> = {
-  timeout: 3000,
-  errorThresholdPercentage: 50,
-  resetTimeout: 5000,
-  volumeThreshold: 5,
-};
-
-function isOpenCircuitError(error: unknown) {
-  return error instanceof Error && error.message.toLowerCase().includes('breaker is open');
-}
+const sharedBreakerInternal = createDbCircuitBreaker(
+  async (action: () => Promise<unknown>) => action(),
+  {
+    timeout: 2500,
+    errorThresholdPercentage: 50,
+    resetTimeout: 5000,
+    volumeThreshold: 2,
+  }
+);
 
 export function createDbCircuitBreaker<TArgs extends unknown[], TResult>(
   action: (...args: TArgs) => Promise<TResult>,
   options?: DbCircuitBreakerOptions
 ) {
-  let circuitBreakerOptions = { ...defaultOptions, ...options };
+  let circuitBreakerOptions = { ...defaultCircuitBreakerOptions, ...options };
   let breaker = createBreaker();
 
   function createBreaker() {
@@ -36,6 +44,7 @@ export function createDbCircuitBreaker<TArgs extends unknown[], TResult>(
         return (await breaker.fire(...args)) as TResult;
       } catch (error) {
         if (breaker.opened || isOpenCircuitError(error)) {
+          logWarn('DbCircuitBreaker', 'Circuit breaker is OPEN (DbCircuitOpenError thrown)');
           throw new DbCircuitOpenError();
         }
 
@@ -52,25 +61,3 @@ export function createDbCircuitBreaker<TArgs extends unknown[], TResult>(
     },
   };
 }
-
-const sharedBreakerInternal = createDbCircuitBreaker(
-  async (action: () => Promise<unknown>) => action(),
-  {
-    timeout: 2500,
-    errorThresholdPercentage: 50,
-    resetTimeout: 5000,
-    volumeThreshold: 2,
-  }
-);
-
-export const sharedDbCircuitBreaker = {
-  execute<T>(action: () => Promise<T>): Promise<T> {
-    return sharedBreakerInternal.execute(action) as Promise<T>;
-  },
-  async reset() {
-    await sharedBreakerInternal.reset();
-  },
-  async updateOptions(nextOptions: Partial<DbCircuitBreakerOptions>) {
-    await sharedBreakerInternal.updateOptions(nextOptions);
-  },
-};

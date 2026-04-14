@@ -2,16 +2,15 @@ import { UserCompanySpend } from '../../src/db/models/user-company-spend';
 import * as SpendService from '../../src/services/spend.service';
 import * as LogUtils from '../../src/common/utils/logUtils';
 import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
+import { sharedDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
 
 jest.mock('../../src/db/models/user-company-spend');
 
 describe('SpendService', () => {
   let logErrorSpy: jest.SpyInstance;
-  let logWarnSpy: jest.SpyInstance;
 
   beforeEach(() => {
     logErrorSpy = jest.spyOn(LogUtils, 'logError').mockImplementation(() => {});
-    logWarnSpy = jest.spyOn(LogUtils, 'logWarn').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -61,49 +60,23 @@ describe('SpendService', () => {
     });
 
     describe('when circuit breaker execution fails', () => {
-      it('rethrows DbCircuitOpenError and logs warning', async () => {
+      it('rethrows DbCircuitOpenError', async () => {
         const error = new DbCircuitOpenError();
-        jest
-          .spyOn(SpendService.remainingSpendCircuitBreaker, 'execute')
-          .mockRejectedValueOnce(error);
+        jest.spyOn(sharedDbCircuitBreaker, 'execute').mockRejectedValueOnce(error);
 
         await expect(
           SpendService.getRemainingSpendForCompany('user_123', 'cmp_123')
         ).rejects.toBeInstanceOf(DbCircuitOpenError);
-
-        expect(logWarnSpy).toHaveBeenCalledWith(
-          'SpendService',
-          expect.stringContaining('Circuit breaker is OPEN for companyId: cmp_123')
-        );
       });
 
-      it('maps non-circuit errors to InternalServerError', async () => {
+      it('propagates non-circuit errors', async () => {
         jest
-          .spyOn(SpendService.remainingSpendCircuitBreaker, 'execute')
+          .spyOn(sharedDbCircuitBreaker, 'execute')
           .mockRejectedValueOnce(new Error('breaker failure'));
 
         await expect(
           SpendService.getRemainingSpendForCompany('user_123', 'cmp_123')
-        ).rejects.toBeInstanceOf(InternalServerError);
-      });
-    });
-  });
-
-  describe('mapRemainingSpendToDashboardValue', () => {
-    it('maps minor-unit spend summary to dashboard display values', () => {
-      expect(
-        SpendService.mapRemainingSpendToDashboardValue({
-          spent: 380000,
-          limit: 500000,
-          remaining: 120000,
-          utilizationPercent: 76,
-          currency: 'SEK',
-          label: 'based on your set limit',
-        })
-      ).toEqual({
-        used: 3800,
-        total: 5000,
-        currency: 'SEK',
+        ).rejects.toThrow('breaker failure');
       });
     });
   });

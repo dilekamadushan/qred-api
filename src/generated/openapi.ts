@@ -359,27 +359,138 @@ export interface components {
             };
         };
         InvalidField: {
-            /** @example transactionPreviewLimit */
+            /** @example query.pageSize */
             field: string;
-            /** @example Must be between 1 and 10. */
+            /** @example Must be greater than or equal to 1. */
             reason: string;
         };
-        ProblemDetails: {
+        BaseProblemDetails: {
             /**
              * Format: uri
-             * @example https://api.qred.example.com/problems/validation-error
+             * @example https://api.qred.example.com/problems/error
              */
             type: string;
-            /** @example Validation error */
+            /** @example Request failed */
             title: string;
             status: number;
+            /** @example The request could not be completed. */
             detail: string;
             /** Format: uri */
             instance?: string | null;
+            /** @example req_123456 */
             requestId: string;
-            /** @example validation_error */
+            /** @example bad_request */
             code: string;
             errors?: components["schemas"]["InvalidField"][] | null;
+        };
+        BadRequestProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/validation-error */
+            type?: string;
+            /** @example VALIDATION_ERROR */
+            title?: string;
+            /** @enum {integer} */
+            status?: 400;
+            /** @example request/query/pageSize must be greater than or equal to 1 */
+            detail?: string;
+            /**
+             * @example VALIDATION_ERROR
+             * @enum {string}
+             */
+            code?: "VALIDATION_ERROR" | "validation_error" | "format.openapi.validation";
+        };
+        UnauthorizedProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/unauthorized */
+            type?: string;
+            /** @example unauthorized */
+            title?: string;
+            /** @enum {integer} */
+            status?: 401;
+            /** @example Authentication is required or the token is invalid. */
+            detail?: string;
+            /**
+             * @example unauthorized
+             * @enum {string}
+             */
+            code?: "unauthorized";
+        };
+        ForbiddenProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/forbidden */
+            type?: string;
+            /** @example forbidden */
+            title?: string;
+            /** @enum {integer} */
+            status?: 403;
+            /** @example You do not have permission to access this resource. */
+            detail?: string;
+            /**
+             * @example forbidden
+             * @enum {string}
+             */
+            code?: "forbidden";
+        };
+        BaseNotFoundProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/not-found */
+            type?: string;
+            /** @example not_found */
+            title?: string;
+            /** @enum {integer} */
+            status?: 404;
+            /** @example The requested resource could not be found. */
+            detail?: string;
+            /** @example not_found */
+            code?: string;
+        };
+        SelectedCompanyNotFoundProblemDetails: components["schemas"]["BaseNotFoundProblemDetails"] & {
+            /**
+             * @example selected_company_not_found
+             * @enum {string}
+             */
+            code?: "selected_company_not_found";
+        };
+        TooManyRequestsProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/rate-limited */
+            type?: string;
+            /** @example rate_limited */
+            title?: string;
+            /** @enum {integer} */
+            status?: 429;
+            /** @example Too many requests. Please retry later. */
+            detail?: string;
+            /**
+             * @example rate_limited
+             * @enum {string}
+             */
+            code?: "rate_limited";
+        };
+        InternalServerErrorProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/internal-server-error */
+            type?: string;
+            /** @example INTERNAL_SERVER_ERROR */
+            title?: string;
+            /** @enum {integer} */
+            status?: 500;
+            /** @example An unexpected server error occurred. */
+            detail?: string;
+            /**
+             * @example INTERNAL_SERVER_ERROR
+             * @enum {string}
+             */
+            code?: "INTERNAL_SERVER_ERROR" | "internal_server_error";
+        };
+        ServiceUnavailableProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/service-unavailable */
+            type?: string;
+            /** @example service_unavailable */
+            title?: string;
+            /** @enum {integer} */
+            status?: 503;
+            /** @example The service is temporarily unavailable. */
+            detail?: string;
+            /**
+             * @example service_unavailable
+             * @enum {string}
+             */
+            code?: "service_unavailable" | "database_circuit_breaker_open";
         };
         CardSummary: {
             /** @example card_987 */
@@ -407,6 +518,13 @@ export interface components {
              */
             artworkUrl: string;
         };
+        DefaultCardNotFoundProblemDetails: components["schemas"]["BaseNotFoundProblemDetails"] & {
+            /**
+             * @example default_card_not_found
+             * @enum {string}
+             */
+            code?: "default_card_not_found";
+        };
         CompanySummary: {
             /** @example cmp_123 */
             id: string;
@@ -433,6 +551,13 @@ export interface components {
             /** Format: date-time */
             generatedAt?: string | null;
         };
+        CompanyMembershipNotFoundProblemDetails: components["schemas"]["BaseNotFoundProblemDetails"] & {
+            /**
+             * @example company_membership_not_found
+             * @enum {string}
+             */
+            code?: "company_membership_not_found";
+        };
         Money: {
             /** @description Monetary amount in minor units, for example ore for SEK. */
             amountMinor: number;
@@ -457,6 +582,13 @@ export interface components {
              */
             dueDate: string;
             amount: components["schemas"]["Money"];
+        };
+        InvoiceNotFoundProblemDetails: components["schemas"]["BaseNotFoundProblemDetails"] & {
+            /**
+             * @example invoice_not_found
+             * @enum {string}
+             */
+            code?: "invoice_not_found";
         };
         RemainingSpendSummary: {
             /**
@@ -484,6 +616,32 @@ export interface components {
             /** @example based on your set limit */
             label: string;
         };
+        RemainingSpendNotFoundProblemDetails: components["schemas"]["BaseNotFoundProblemDetails"] & {
+            /**
+             * @example remaining_spend_not_found
+             * @enum {string}
+             */
+            code?: "remaining_spend_not_found";
+        };
+        NotFoundProblemDetails: components["schemas"]["BaseNotFoundProblemDetails"] & {
+            /**
+             * @example not_found
+             * @enum {string}
+             */
+            code?: "not_found";
+        };
+        ConflictProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/conflict */
+            type?: string;
+            /** @example conflict */
+            title?: string;
+            /** @enum {integer} */
+            status?: 409;
+            /** @example The request conflicts with the current state of the resource. */
+            detail?: string;
+            /** @example conflict */
+            code?: string;
+        };
         CardActivationRequest: {
             /** @enum {boolean} */
             confirmation: true;
@@ -499,6 +657,18 @@ export interface components {
                 activatedAt: string;
             };
             meta: components["schemas"]["ResponseMeta"];
+        };
+        UnprocessableEntityProblemDetails: components["schemas"]["BaseProblemDetails"] & {
+            /** @example https://api.qred.example.com/problems/unprocessable-entity */
+            type?: string;
+            /** @example unprocessable_entity */
+            title?: string;
+            /** @enum {integer} */
+            status?: 422;
+            /** @example The request passed validation but cannot be processed. */
+            detail?: string;
+            /** @example unprocessable_entity */
+            code?: string;
         };
         TransactionSummary: {
             id: string;
@@ -542,7 +712,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["BadRequestProblemDetails"];
             };
         };
         /** @description Authentication is missing or invalid. */
@@ -551,7 +721,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["UnauthorizedProblemDetails"];
             };
         };
         /** @description The user does not have permission to access the requested resource. */
@@ -560,16 +730,16 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["ForbiddenProblemDetails"];
             };
         };
-        /** @description The requested resource could not be found. */
-        NotFound: {
+        /** @description No selected company exists for the authenticated user. */
+        SelectedCompanyNotFound: {
             headers: {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["SelectedCompanyNotFoundProblemDetails"];
             };
         };
         /** @description The client has been rate limited. */
@@ -580,7 +750,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["TooManyRequestsProblemDetails"];
             };
         };
         /** @description An unexpected server error occurred. */
@@ -589,7 +759,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["InternalServerErrorProblemDetails"];
             };
         };
         /**
@@ -601,7 +771,52 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["ServiceUnavailableProblemDetails"];
+            };
+        };
+        /** @description No default card exists for the requested company. */
+        DefaultCardNotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["DefaultCardNotFoundProblemDetails"];
+            };
+        };
+        /** @description The company does not belong to the user's memberships. */
+        CompanyMembershipNotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["CompanyMembershipNotFoundProblemDetails"];
+            };
+        };
+        /** @description No due invoice exists for the requested company. */
+        InvoiceNotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["InvoiceNotFoundProblemDetails"];
+            };
+        };
+        /** @description No remaining spend data exists for the requested company. */
+        RemainingSpendNotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["RemainingSpendNotFoundProblemDetails"];
+            };
+        };
+        /** @description The requested resource could not be found. */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["NotFoundProblemDetails"];
             };
         };
         /** @description The request conflicts with the current state of the resource. */
@@ -610,7 +825,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["ConflictProblemDetails"];
             };
         };
         /** @description The request passed basic validation but cannot be processed. */
@@ -619,7 +834,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/problem+json": components["schemas"]["ProblemDetails"];
+                "application/problem+json": components["schemas"]["UnprocessableEntityProblemDetails"];
             };
         };
     };
@@ -684,7 +899,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
+            404: components["responses"]["SelectedCompanyNotFound"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
             503: components["responses"]["ServiceUnavailable"];
@@ -713,7 +928,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
+            404: components["responses"]["DefaultCardNotFound"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
             503: components["responses"]["ServiceUnavailable"];
@@ -730,6 +945,8 @@ export interface operations {
                 sortBy?: "name" | "legalName" | "isSelected";
                 /** @description Filter companies by selected status. */
                 isSelected?: boolean;
+                /** @description Opaque cursor for forward pagination, returned in the previous page's nextCursor field. */
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -795,7 +1012,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
+            404: components["responses"]["CompanyMembershipNotFound"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
             503: components["responses"]["ServiceUnavailable"];
@@ -824,7 +1041,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
+            404: components["responses"]["InvoiceNotFound"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -851,7 +1068,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
+            404: components["responses"]["RemainingSpendNotFound"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
             503: components["responses"]["ServiceUnavailable"];

@@ -26,13 +26,12 @@ export async function getDashboard(request: Request, response: Response) {
     hasSectionError(data.card) &&
     hasSectionError(data.spend) &&
     hasSectionError(data.transactions)
-  ) {
+  )
     throw new ServiceUnavailableError({
       detail:
         'Dashboard data is temporarily unavailable because all core sections failed. Please retry shortly.',
       code: 'service_unavailable',
     });
-  }
 
   return response.status(HTTP_STATUS.OK).json({ data });
 }

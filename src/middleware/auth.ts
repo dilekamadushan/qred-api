@@ -4,7 +4,7 @@ import { uuid } from '../db/seed/seed';
 import { UnauthorizedError } from '../common/errors/appHttpError';
 
 // In dev, always assign the first seed userId
-export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
+export function auth(req: Request, _res: Response, next: NextFunction) {
   if (
     process.env.NODE_ENV === 'development' ||
     process.env.NODE_ENV === 'dev' ||

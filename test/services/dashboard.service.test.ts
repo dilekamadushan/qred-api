@@ -1,14 +1,9 @@
 import { UserCompanyMembership } from '../../src/db/models/user-company-membership';
-import {
-  dashboardCompanyCircuitBreaker,
-  dashboardSpendCircuitBreaker,
-  dashboardTransactionsCircuitBreaker,
-  getDashboardForUser,
-} from '../../src/services/dashboard.service';
+import { getDashboardForUser } from '../../src/services/dashboard.service';
+import { sharedDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
 import * as CardsService from '../../src/services/cards.service';
 import * as SpendService from '../../src/services/spend.service';
 import * as TransactionService from '../../src/services/transactions.service';
-import * as LogUtils from '../../src/common/utils/logUtils';
 
 jest.mock('../../src/db/models/company');
 jest.mock('../../src/db/models/user-company-membership');
@@ -16,9 +11,7 @@ jest.mock('../../src/db/models/user-company-membership');
 describe('dashboard.service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    dashboardCompanyCircuitBreaker.execute = jest.fn(async (action) => action());
-    dashboardSpendCircuitBreaker.execute = jest.fn(async (action) => action());
-    dashboardTransactionsCircuitBreaker.execute = jest.fn(async (action) => action());
+    sharedDbCircuitBreaker.execute = jest.fn(async (action) => action());
   });
 
   describe('getDashboardForUser', () => {
@@ -199,18 +192,11 @@ describe('dashboard.service', () => {
     });
 
     describe('when top-level dashboard assembly fails', () => {
-      it('logs and rethrows the error', async () => {
-        const logErrorSpy = jest.spyOn(LogUtils, 'logError').mockImplementation(() => {});
+      it('rethrows the error', async () => {
         const error = new Error('company breaker failed');
-        dashboardCompanyCircuitBreaker.execute = jest.fn().mockRejectedValueOnce(error);
+        sharedDbCircuitBreaker.execute = jest.fn().mockRejectedValueOnce(error);
 
         await expect(getDashboardForUser('user_1', 3)).rejects.toThrow('company breaker failed');
-
-        expect(logErrorSpy).toHaveBeenCalledWith(
-          'DashboardService',
-          expect.stringContaining('Failed to build dashboard for userId: user_1'),
-          error
-        );
       });
     });
   });
