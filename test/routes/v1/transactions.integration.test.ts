@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../../../src/app';
-import { transactionsCircuitBreaker } from '../../../src/services/transactions.service';
+import { sharedDbCircuitBreaker } from '../../../src/services/circuitBreaker.service';
 import { addTestData, clearTestDatabase, setupTestDb } from '../../helpers/testDbUtils';
 import { uuid } from '../../../src/db/seed/seed';
 
@@ -116,13 +116,13 @@ describe('routes', () => {
         cards: [testCard],
         transactions: [testTransaction, secondTransaction, thirdTransaction],
       });
-      await transactionsCircuitBreaker.reset();
+      await sharedDbCircuitBreaker.reset();
       jest.restoreAllMocks();
     });
 
     afterEach(async () => {
       await clearTestDatabase();
-      await transactionsCircuitBreaker.reset();
+      await sharedDbCircuitBreaker.reset();
     });
 
     describe('basic retrieval', () => {

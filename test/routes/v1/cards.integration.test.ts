@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../../src/app';
 import { Card } from '../../../src/db/models/card';
-import { defaultCardCircuitBreaker } from '../../../src/services/cards.service';
+import { sharedDbCircuitBreaker } from '../../../src/services/circuitBreaker.service';
 import { addTestData, clearTestDatabase, setupTestDb } from '../../helpers/testDbUtils';
 
 const companyId = 'test-company-1';
@@ -86,9 +86,9 @@ describe('routes', () => {
         memberships: [testMembership, otherMembership],
         cards: [testCard],
       });
-      await defaultCardCircuitBreaker.reset();
+      await sharedDbCircuitBreaker.reset();
       // Never open during normal tests
-      await defaultCardCircuitBreaker.updateOptions({
+      await sharedDbCircuitBreaker.updateOptions({
         timeout: 2500,
         errorThresholdPercentage: 100,
         resetTimeout: 5000,
@@ -99,7 +99,7 @@ describe('routes', () => {
 
     afterEach(async () => {
       await clearTestDatabase();
-      await defaultCardCircuitBreaker.reset();
+      await sharedDbCircuitBreaker.reset();
       jest.restoreAllMocks();
     });
 
@@ -160,7 +160,7 @@ describe('routes', () => {
       describe('when circuit breaker is open', () => {
         it('returns 503 when circuit breaker is open', async () => {
           // Set breaker to open quickly for this test only
-          await defaultCardCircuitBreaker.updateOptions({
+          await sharedDbCircuitBreaker.updateOptions({
             errorThresholdPercentage: 50,
             volumeThreshold: 2,
             resetTimeout: 5000,

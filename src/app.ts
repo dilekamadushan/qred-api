@@ -5,7 +5,7 @@ import path from 'path';
 
 import { middleware as openApiValidator } from 'express-openapi-validator';
 
-import { authMiddleware } from './middleware/authMiddleware';
+import { auth } from './middleware/auth';
 import v1Router from './routes/v1/v1.route';
 import healthRouter from './routes/health.route';
 
@@ -34,13 +34,11 @@ app.use(requestLogger);
 // Health route should be public (no auth)
 app.use(healthRouter);
 
-// Authentication middleware (sets req.user)
-app.use(authMiddleware);
+app.use(auth);
 
 // Protected routes (all v1 API routes)
 app.use('/api/v1', v1Router);
 
-// 404 handler
 app.use(notFoundHandler);
 
 // OpenAPI validator error logging middleware
@@ -49,7 +47,6 @@ app.use(openApiErrorLogger);
 // Error logging middleware
 app.use(errorLogger);
 
-// Error handler
 app.use(errorHandler);
 
 export default app;

@@ -44,7 +44,74 @@ export type ProblemDetails = {
   errors: InvalidField[] | null;
 };
 
+export type RemainingSpendSummary = components['schemas']['RemainingSpendSummary'];
+
 export interface GenericError {
   code?: string;
   [key: string]: unknown;
 }
+
+// Company types
+export type CompanySummary = components['schemas']['CompanySummary'];
+// PageInfo type only exported once below
+export type CompanyListData = {
+  items: CompanySummary[];
+  page: PageInfo;
+};
+
+// Dashboard types
+export type DashboardData = components['schemas']['DashboardResponse']['data'];
+export type CardValue = NonNullable<DashboardData['card']['value']>;
+export type TransactionsValue = NonNullable<DashboardData['transactions']['value']>;
+export type ViewMoreValue = NonNullable<DashboardData['viewMore']['value']>;
+export type SectionWithValue<T> = { value: T };
+export type SectionError = { error: string };
+export type SelectedCompanyResult = {
+  companyId: string;
+  section: DashboardData['company'];
+};
+
+// Transaction types
+export type TransactionPreviewValue =
+  components['schemas']['DashboardResponse']['data']['transactions']['value'];
+export type TransactionPreviewItem = NonNullable<TransactionPreviewValue>['items'][number];
+export type TransactionPreviewResult = {
+  items: TransactionPreviewItem[];
+  remainingTransactions: number;
+};
+
+// Card types
+export type CardSummary = components['schemas']['CardSummary'];
+
+// Circuit breaker types
+export type DbCircuitBreakerOptions = {
+  timeout?: number;
+  errorThresholdPercentage?: number;
+  resetTimeout?: number;
+  volumeThreshold?: number;
+};
+
+export type CompanyQueryOptions = {
+  search?: string;
+  pageSize?: number;
+  sortBy?: 'name' | 'legalName' | 'isSelected';
+  isSelected?: boolean;
+  cursor?: string;
+};
+
+export type CompanyCursorPayload = {
+  sortField: 'name' | 'legalName' | 'isSelected';
+  sortValue: string | boolean;
+  id: string;
+};
+
+export type CompanyMembershipLike = {
+  companyId: string;
+  isSelected?: boolean | null;
+  company?: {
+    id: string;
+    name: string;
+    legalName: string;
+    logoUrl: string;
+  } | null;
+};

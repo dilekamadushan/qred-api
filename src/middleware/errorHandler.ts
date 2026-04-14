@@ -1,5 +1,5 @@
 import { type NextFunction, type Request, type Response } from 'express';
-import { HTTP_STATUS } from '../common/constants';
+import { ERROR_CODES, HTTP_STATUS } from '../common/constants';
 import type { HttpError } from 'express-openapi-validator/dist/framework/types';
 import { BaseAppError } from '../common/errors/appHttpError';
 import {
@@ -9,30 +9,35 @@ import {
   sendTypedAppError,
 } from '../common/utils/error';
 
-export function errorHandler(error: HttpError, req: Request, res: Response, _next: NextFunction) {
-  if (error instanceof BaseAppError) return sendTypedAppError(res, req, error);
+export function errorHandler(
+  error: HttpError,
+  request: Request,
+  response: Response,
+  _next: NextFunction
+) {
+  if (error instanceof BaseAppError) return sendTypedAppError(response, request, error);
 
   if (error.status === HTTP_STATUS.BAD_REQUEST)
     return sendProblem({
-      response: res,
-      request: req,
+      response: response,
+      request: request,
       status: HTTP_STATUS.BAD_REQUEST,
       title: 'VALIDATION_ERROR',
       detail: error.message,
-      code: 'VALIDATION_ERROR',
+      code: ERROR_CODES.VALIDATION_ERROR,
       errors: mapValidationErrors(error.errors),
     });
 
   if (error.status === HTTP_STATUS.UNAUTHORIZED || error.status === HTTP_STATUS.FORBIDDEN)
-    return sendAuthProblem(res, req, error.status, error.message);
+    return sendAuthProblem(response, request, error.status, error.message);
 
   return sendProblem({
-    response: res,
-    request: req,
+    response: response,
+    request: request,
     status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
     title: 'INTERNAL_SERVER_ERROR',
     detail: error.message,
-    code: 'INTERNAL_SERVER_ERROR',
+    code: ERROR_CODES.INTERNAL_SERVER_ERROR,
     errors: null,
   });
 }

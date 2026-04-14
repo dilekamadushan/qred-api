@@ -16,43 +16,74 @@ RateLimitHeaders:
       schema:
         type: integer
       example: 1712841600
+
 # Responses for OpenAPI contract
 BadRequest:
   description: The request was invalid.
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/BadRequestProblemDetails"
 Unauthorized:
   description: Authentication is missing or invalid.
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/UnauthorizedProblemDetails"
 Forbidden:
   description: The user does not have permission to access the requested resource.
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/ForbiddenProblemDetails"
 NotFound:
   description: The requested resource could not be found.
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/NotFoundProblemDetails"
+DefaultCardNotFound:
+  description: No default card exists for the requested company.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./error-schemas.yaml#/DefaultCardNotFoundProblemDetails"
+SelectedCompanyNotFound:
+  description: No selected company exists for the authenticated user.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./error-schemas.yaml#/SelectedCompanyNotFoundProblemDetails"
+RemainingSpendNotFound:
+  description: No remaining spend data exists for the requested company.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./error-schemas.yaml#/RemainingSpendNotFoundProblemDetails"
+CompanyMembershipNotFound:
+  description: The company does not belong to the user's memberships.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./error-schemas.yaml#/CompanyMembershipNotFoundProblemDetails"
+InvoiceNotFound:
+  description: No due invoice exists for the requested company.
+  content:
+    application/problem+json:
+      schema:
+        $ref: "./error-schemas.yaml#/InvoiceNotFoundProblemDetails"
 Conflict:
   description: The request conflicts with the current state of the resource.
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/ConflictProblemDetails"
 UnprocessableEntity:
   description: The request passed basic validation but cannot be processed.
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/UnprocessableEntityProblemDetails"
 TooManyRequests:
   description: The client has been rate limited.
   headers:
@@ -63,7 +94,7 @@ TooManyRequests:
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/TooManyRequestsProblemDetails"
 ServiceUnavailable:
   description: |
     A required downstream dependency for the dashboard is unavailable, so the
@@ -71,10 +102,10 @@ ServiceUnavailable:
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/ServiceUnavailableProblemDetails"
 InternalServerError:
   description: An unexpected server error occurred.
   content:
     application/problem+json:
       schema:
-        $ref: "./schemas.yaml#/ProblemDetails"
+        $ref: "./error-schemas.yaml#/InternalServerErrorProblemDetails"

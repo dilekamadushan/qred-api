@@ -35,6 +35,12 @@
         required: false
         schema:
           type: boolean
+      - name: cursor
+        in: query
+        description: Opaque cursor for forward pagination, returned in the previous page's nextCursor field.
+        required: false
+        schema:
+          type: string
     responses:
       "200":
         description: Companies successfully returned.
@@ -136,7 +142,7 @@
       "403":
         $ref: "../components/responses.yaml#/Forbidden"
       "404":
-        $ref: "../components/responses.yaml#/NotFound"
+        $ref: "../components/responses.yaml#/CompanyMembershipNotFound"
       "429":
         $ref: "../components/responses.yaml#/TooManyRequests"
       "500":

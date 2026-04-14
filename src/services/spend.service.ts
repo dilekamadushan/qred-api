@@ -1,13 +1,15 @@
-import type { components } from '../generated/openapi';
 import { logError, logWarn } from '../common/utils/logUtils';
 import { UserCompanySpend } from '../db/models/user-company-spend';
 import { sharedDbCircuitBreaker } from './circuitBreaker.service';
-import { DbCircuitOpenError, InternalServerError } from '../common/errors/appHttpError';
+import { InternalServerError } from '../common/errors/appHttpError';
+import { calculateSpendUtilization } from '../common/utils/money';
+import type { RemainingSpendSummary } from '../common/types/types';
 
-type RemainingSpendSummary = components['schemas']['RemainingSpendSummary'];
-
-function toDashboardAmount(amountMinor: number): number {
-  return Number((amountMinor / 100).toFixed(2));
+export function getRemainingSpendForCompany(
+  userId: string,
+  companyId: string
+): Promise<RemainingSpendSummary | null> {
+  return sharedDbCircuitBreaker.execute(() => queryRemainingSpend(userId, companyId));
 }
 
 async function queryRemainingSpend(
@@ -26,9 +28,10 @@ async function queryRemainingSpend(
       return null;
     }
 
-    const spentMinor = Math.max(spend.limitMinor - spend.remainingMinor, 0);
-    const utilizationPercent =
-      spend.limitMinor > 0 ? Math.round((spentMinor / spend.limitMinor) * 100) : 0;
+    const { spentMinor, utilizationPercent } = calculateSpendUtilization(
+      spend.limitMinor,
+      spend.remainingMinor
+    );
 
     return {
       spent: spentMinor,
@@ -43,32 +46,4 @@ async function queryRemainingSpend(
 
     throw new InternalServerError({ detail: 'Failed to load spend data.' });
   }
-}
-
-export const remainingSpendCircuitBreaker = sharedDbCircuitBreaker;
-
-export async function getRemainingSpendForCompany(
-  userId: string,
-  companyId: string
-): Promise<RemainingSpendSummary | null> {
-  try {
-    return await remainingSpendCircuitBreaker.execute(() => queryRemainingSpend(userId, companyId));
-  } catch (error) {
-    if (error instanceof DbCircuitOpenError) {
-      logWarn('SpendService', `Circuit breaker is OPEN for companyId: ${companyId}`);
-      throw error;
-    }
-
-    throw new InternalServerError({ detail: 'Failed to load spend data.' });
-  }
-}
-
-export function mapRemainingSpendToDashboardValue(
-  spend: RemainingSpendSummary
-): components['schemas']['DashboardResponse']['data']['spend']['value'] {
-  return {
-    used: toDashboardAmount(spend.spent),
-    total: toDashboardAmount(spend.limit),
-    currency: spend.currency,
-  };
 }

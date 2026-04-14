@@ -4,11 +4,7 @@ import { Card, Transaction, UserCompanySpend } from '../../../src/db/models';
 import * as CardsService from '../../../src/services/cards.service';
 import * as TransactionService from '../../../src/services/transactions.service';
 import { DbCircuitOpenError } from '../../../src/common/errors/appHttpError';
-import {
-  dashboardCompanyCircuitBreaker,
-  dashboardSpendCircuitBreaker,
-  dashboardTransactionsCircuitBreaker,
-} from '../../../src/services/dashboard.service';
+import { sharedDbCircuitBreaker } from '../../../src/services/circuitBreaker.service';
 import { addTestData, clearTestDatabase, setupTestDb } from '../../helpers/testDbUtils';
 import { uuid } from '../../../src/db/seed/seed';
 
@@ -126,29 +122,27 @@ const transactions = [
   },
 ];
 
-describe('routes', () => {
-  describe('GET /api/v1/dashboard', () => {
-    beforeAll(async () => {
-      process.env.NODE_ENV = 'test';
-      await setupTestDb();
-    });
+describe('GET /api/v1/dashboard', () => {
+  beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
+    await setupTestDb();
+  });
 
-    beforeEach(async () => {
-      await clearTestDatabase();
-      await addTestData({
-        users: [testUser],
-        companies: [testCompany],
-        memberships: [testMembership],
-        cards: [testCard],
-        spends: [spend],
-        transactions,
-      });
-      await dashboardCompanyCircuitBreaker.reset();
-      await dashboardSpendCircuitBreaker.reset();
-      await dashboardTransactionsCircuitBreaker.reset();
-      jest.restoreAllMocks();
+  beforeEach(async () => {
+    await clearTestDatabase();
+    await addTestData({
+      users: [testUser],
+      companies: [testCompany],
+      memberships: [testMembership],
+      cards: [testCard],
+      spends: [spend],
+      transactions,
     });
+    await sharedDbCircuitBreaker.reset();
+    jest.restoreAllMocks();
+  });
 
+  describe('successful response', () => {
     it('returns aggregated dashboard response', async () => {
       const response = await request(app)
         .get(`${endpoint}?transactionPreviewLimit=2`)
@@ -175,7 +169,9 @@ describe('routes', () => {
       expect(response.body.code).toBe('selected_company_not_found');
       expect(response.body.detail).toBe('No selected company found for the authenticated user.');
     });
+  });
 
+  describe('partial failures', () => {
     it('returns partial data when one section fails', async () => {
       jest.spyOn(Card, 'findOne').mockRejectedValue(new Error('card db error'));
 
@@ -247,7 +243,9 @@ describe('routes', () => {
       expect(response.body.data.transactions.error).toBe('database_circuit_breaker_open');
       expect(response.body.data.viewMore.error).toBe('database_circuit_breaker_open');
     });
+  });
 
+  describe('rate limiting', () => {
     it('returns 429 when rate limited', async () => {
       for (let index = 0; index < 12; index += 1) {
         await request(app).get(endpoint).set('Authorization', 'Bearer dashboard-rate-limit');
@@ -259,6 +257,29 @@ describe('routes', () => {
 
       expect(response.status).toBe(429);
       expect(response.body.code).toBe('rate_limited');
+    });
+  });
+
+  describe('validation errors', () => {
+    it('returns 400 for preview limit below min', async () => {
+      const response = await request(app)
+        .get(`${endpoint}?transactionPreviewLimit=0`)
+        .set('Authorization', 'Bearer test-token');
+      expect(response.status).toBe(400);
+    });
+
+    it('returns 400 for preview limit above max', async () => {
+      const response = await request(app)
+        .get(`${endpoint}?transactionPreviewLimit=100`)
+        .set('Authorization', 'Bearer test-token');
+      expect(response.status).toBe(400);
+    });
+
+    it('returns 400 for non-numeric preview limit', async () => {
+      const response = await request(app)
+        .get(`${endpoint}?transactionPreviewLimit=abc`)
+        .set('Authorization', 'Bearer test-token');
+      expect(response.status).toBe(400);
     });
   });
 });

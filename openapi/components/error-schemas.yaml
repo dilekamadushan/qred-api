@@ -1,0 +1,414 @@
+BaseProblemDetails:
+  type: object
+  required: [type, title, status, detail, requestId, code]
+  properties:
+    type:
+      type: string
+      format: uri
+      example: https://api.qred.example.com/problems/error
+    title:
+      type: string
+      example: Request failed
+    status:
+      type: integer
+      minimum: 400
+      maximum: 599
+    detail:
+      type: string
+      example: The request could not be completed.
+    instance:
+      type: string
+      format: uri
+      nullable: true
+    requestId:
+      type: string
+      example: req_123456
+    code:
+      type: string
+      example: bad_request
+    errors:
+      type: array
+      nullable: true
+      items:
+        $ref: "#/InvalidField"
+
+InvalidField:
+  type: object
+  required: [field, reason]
+  properties:
+    field:
+      type: string
+      example: query.pageSize
+    reason:
+      type: string
+      example: Must be greater than or equal to 1.
+
+BadRequestProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/validation-error
+        title:
+          type: string
+          example: VALIDATION_ERROR
+        status:
+          type: integer
+          enum: [400]
+        detail:
+          type: string
+          example: request/query/pageSize must be greater than or equal to 1
+        code:
+          type: string
+          enum: [VALIDATION_ERROR, validation_error, format.openapi.validation]
+          example: VALIDATION_ERROR
+      example:
+        type: https://api.qred.example.com/problems/validation-error
+        title: VALIDATION_ERROR
+        status: 400
+        detail: request/query/pageSize must be greater than or equal to 1
+        instance: https://api.qred.example.com/api/v1/companies?pageSize=0
+        requestId: req_123456
+        code: VALIDATION_ERROR
+        errors:
+          - field: query.pageSize
+            reason: Must be greater than or equal to 1.
+
+UnauthorizedProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/unauthorized
+        title:
+          type: string
+          example: unauthorized
+        status:
+          type: integer
+          enum: [401]
+        detail:
+          type: string
+          example: Authentication is required or the token is invalid.
+        code:
+          type: string
+          enum: [unauthorized]
+          example: unauthorized
+      example:
+        type: https://api.qred.example.com/problems/unauthorized
+        title: unauthorized
+        status: 401
+        detail: Authentication is required or the token is invalid.
+        instance: https://api.qred.example.com/api/v1/companies
+        requestId: req_123456
+        code: unauthorized
+
+ForbiddenProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/forbidden
+        title:
+          type: string
+          example: forbidden
+        status:
+          type: integer
+          enum: [403]
+        detail:
+          type: string
+          example: You do not have permission to access this resource.
+        code:
+          type: string
+          enum: [forbidden]
+          example: forbidden
+      example:
+        type: https://api.qred.example.com/problems/forbidden
+        title: forbidden
+        status: 403
+        detail: You do not have permission to access this resource.
+        instance: https://api.qred.example.com/api/v1/companies/cmp_123/cards/card_123
+        requestId: req_123456
+        code: forbidden
+
+BaseNotFoundProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/not-found
+        title:
+          type: string
+          example: not_found
+        status:
+          type: integer
+          enum: [404]
+        detail:
+          type: string
+          example: The requested resource could not be found.
+        code:
+          type: string
+          example: not_found
+
+NotFoundProblemDetails:
+  allOf:
+    - $ref: "#/BaseNotFoundProblemDetails"
+    - type: object
+      properties:
+        code:
+          type: string
+          enum: [not_found]
+          example: not_found
+      example:
+        type: https://api.qred.example.com/problems/not-found
+        title: not_found
+        status: 404
+        detail: The requested resource could not be found.
+        instance: https://api.qred.example.com/api/v1/resource
+        requestId: req_123456
+        code: not_found
+
+DefaultCardNotFoundProblemDetails:
+  allOf:
+    - $ref: "#/BaseNotFoundProblemDetails"
+    - type: object
+      properties:
+        code:
+          type: string
+          enum: [default_card_not_found]
+          example: default_card_not_found
+      example:
+        type: https://api.qred.example.com/problems/not-found
+        title: not_found
+        status: 404
+        detail: No default card exists for company cmp_123.
+        instance: https://api.qred.example.com/api/v1/companies/cmp_123/card/default
+        requestId: req_123456
+        code: default_card_not_found
+
+SelectedCompanyNotFoundProblemDetails:
+  allOf:
+    - $ref: "#/BaseNotFoundProblemDetails"
+    - type: object
+      properties:
+        code:
+          type: string
+          enum: [selected_company_not_found]
+          example: selected_company_not_found
+      example:
+        type: https://api.qred.example.com/problems/not-found
+        title: not_found
+        status: 404
+        detail: No selected company found for the authenticated user.
+        instance: https://api.qred.example.com/api/v1/dashboard
+        requestId: req_123456
+        code: selected_company_not_found
+
+RemainingSpendNotFoundProblemDetails:
+  allOf:
+    - $ref: "#/BaseNotFoundProblemDetails"
+    - type: object
+      properties:
+        code:
+          type: string
+          enum: [remaining_spend_not_found]
+          example: remaining_spend_not_found
+      example:
+        type: https://api.qred.example.com/problems/not-found
+        title: not_found
+        status: 404
+        detail: No remaining spend data found for company cmp_123.
+        instance: https://api.qred.example.com/api/v1/companies/cmp_123/remaining-spend
+        requestId: req_123456
+        code: remaining_spend_not_found
+
+CompanyMembershipNotFoundProblemDetails:
+  allOf:
+    - $ref: "#/BaseNotFoundProblemDetails"
+    - type: object
+      properties:
+        code:
+          type: string
+          enum: [company_membership_not_found]
+          example: company_membership_not_found
+      example:
+        type: https://api.qred.example.com/problems/not-found
+        title: not_found
+        status: 404
+        detail: Company cmp_123 not found in user's memberships.
+        instance: https://api.qred.example.com/api/v1/user/company-selection
+        requestId: req_123456
+        code: company_membership_not_found
+
+InvoiceNotFoundProblemDetails:
+  allOf:
+    - $ref: "#/BaseNotFoundProblemDetails"
+    - type: object
+      properties:
+        code:
+          type: string
+          enum: [invoice_not_found]
+          example: invoice_not_found
+      example:
+        type: https://api.qred.example.com/problems/not-found
+        title: not_found
+        status: 404
+        detail: No due invoice found for company cmp_123.
+        instance: https://api.qred.example.com/api/v1/companies/cmp_123/invoices/latest
+        requestId: req_123456
+        code: invoice_not_found
+
+ConflictProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/conflict
+        title:
+          type: string
+          example: conflict
+        status:
+          type: integer
+          enum: [409]
+        detail:
+          type: string
+          example: The request conflicts with the current state of the resource.
+        code:
+          type: string
+          example: conflict
+      example:
+        type: https://api.qred.example.com/problems/conflict
+        title: conflict
+        status: 409
+        detail: The request conflicts with the current state of the resource.
+        instance: https://api.qred.example.com/api/v1/companies/cmp_123/cards/card_123/block
+        requestId: req_123456
+        code: conflict
+
+UnprocessableEntityProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/unprocessable-entity
+        title:
+          type: string
+          example: unprocessable_entity
+        status:
+          type: integer
+          enum: [422]
+        detail:
+          type: string
+          example: The request passed validation but cannot be processed.
+        code:
+          type: string
+          example: unprocessable_entity
+      example:
+        type: https://api.qred.example.com/problems/unprocessable-entity
+        title: unprocessable_entity
+        status: 422
+        detail: The request passed validation but cannot be processed.
+        instance: https://api.qred.example.com/api/v1/companies/cmp_123/cards/card_123/activate
+        requestId: req_123456
+        code: unprocessable_entity
+
+TooManyRequestsProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/rate-limited
+        title:
+          type: string
+          example: rate_limited
+        status:
+          type: integer
+          enum: [429]
+        detail:
+          type: string
+          example: Too many requests. Please retry later.
+        code:
+          type: string
+          enum: [rate_limited]
+          example: rate_limited
+      example:
+        type: https://api.qred.example.com/problems/rate-limited
+        title: rate_limited
+        status: 429
+        detail: Too many requests. Please retry later.
+        instance: https://api.qred.example.com/api/v1/dashboard
+        requestId: req_123456
+        code: rate_limited
+
+ServiceUnavailableProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/service-unavailable
+        title:
+          type: string
+          example: service_unavailable
+        status:
+          type: integer
+          enum: [503]
+        detail:
+          type: string
+          example: The service is temporarily unavailable.
+        code:
+          type: string
+          enum: [service_unavailable, database_circuit_breaker_open]
+          example: service_unavailable
+      example:
+        type: https://api.qred.example.com/problems/service-unavailable
+        title: service_unavailable
+        status: 503
+        detail: The service is temporarily unavailable.
+        instance: https://api.qred.example.com/api/v1/dashboard
+        requestId: req_123456
+        code: service_unavailable
+
+InternalServerErrorProblemDetails:
+  allOf:
+    - $ref: "#/BaseProblemDetails"
+    - type: object
+      properties:
+        type:
+          type: string
+          example: https://api.qred.example.com/problems/internal-server-error
+        title:
+          type: string
+          example: INTERNAL_SERVER_ERROR
+        status:
+          type: integer
+          enum: [500]
+        detail:
+          type: string
+          example: An unexpected server error occurred.
+        code:
+          type: string
+          enum: [INTERNAL_SERVER_ERROR, internal_server_error]
+          example: INTERNAL_SERVER_ERROR
+      example:
+        type: https://api.qred.example.com/problems/internal-server-error
+        title: INTERNAL_SERVER_ERROR
+        status: 500
+        detail: An unexpected server error occurred.
+        instance: https://api.qred.example.com/api/v1/companies
+        requestId: req_123456
+        code: INTERNAL_SERVER_ERROR
