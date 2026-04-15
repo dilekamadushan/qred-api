@@ -1,4 +1,4 @@
-# Task - 1 - [Presentation](#https://docs.google.com/presentation/d/1L2A2PJD2Jn7Hlba91xe6iCpZgrJgySrIhVK-o8sUm8A/edit?slide=id.g3d623873ccc_0_0#slide=id.g3d623873ccc_0_0)
+# Task - 1 - [Presentation](#https://docs.google.com/presentation/d/1L2A2PJD2Jn7Hlba91xe6iCpZgrJgySrIhVK-o8sUm8A/edit?usp=sharing)
 
 # Task-2 Implementing Qred-API
 
