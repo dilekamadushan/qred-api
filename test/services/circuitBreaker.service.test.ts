@@ -30,9 +30,11 @@ describe('circuitBreaker.service', () => {
 
         await expect(circuitBreaker.execute()).rejects.toThrow('database offline');
         await expect(circuitBreaker.execute()).rejects.toBeInstanceOf(DbCircuitOpenError);
-        expect(logWarnSpy).toHaveBeenCalledWith(
+        expect(logWarnSpy).toHaveBeenCalledTimes(1);
+        expect(logWarnSpy).toHaveBeenNthCalledWith(
+          1,
           'DbCircuitBreaker',
-          expect.stringContaining('Circuit breaker is OPEN')
+          'Circuit breaker is OPEN (DbCircuitOpenError thrown)'
         );
       });
     });

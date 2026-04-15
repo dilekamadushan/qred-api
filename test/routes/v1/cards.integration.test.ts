@@ -122,8 +122,20 @@ describe('routes', () => {
     });
 
     describe('when no default card exists', () => {
-      it('returns 404', async () => {
+      it('returns the next available card', async () => {
         await Card.update({ isDefault: false }, { where: { companyId } });
+
+        const res = await request(app)
+          .get(`/api/v1/companies/${companyId}/card/default`)
+          .set('Authorization', 'Bearer integration-fallback-card');
+
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toContain('application/json');
+        expect(res.body).toHaveProperty('id', cardId);
+      });
+
+      it('returns 404 when no card exists at all', async () => {
+        await Card.destroy({ where: { companyId } });
 
         const res = await request(app)
           .get(`/api/v1/companies/${companyId}/card/default`)

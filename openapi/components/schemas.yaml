@@ -46,6 +46,7 @@ DashboardResponse:
           properties:
             value:
               type: object
+              nullable: true
               required: [id, status, artworkUrl]
               properties:
                 id:
@@ -67,6 +68,7 @@ DashboardResponse:
           properties:
             value:
               type: object
+              nullable: true
               required: [used, total, currency]
               properties:
                 used:

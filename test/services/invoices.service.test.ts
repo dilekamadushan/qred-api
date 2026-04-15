@@ -1,7 +1,11 @@
 import { Invoice } from '../../src/db/models/invoice';
 import { getLatestInvoiceForCompany } from '../../src/services/invoices.service';
 import { sharedDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
-import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
+import {
+  DbCircuitOpenError,
+  InternalServerError,
+  NotFoundError,
+} from '../../src/common/errors/appHttpError';
 
 jest.mock('../../src/db/models/invoice');
 jest.mock('../../src/common/utils/logUtils');
@@ -69,19 +73,18 @@ describe('invoices.service', () => {
       const result = await getLatestInvoiceForCompany(companyId);
       expect(Invoice.findOne).toHaveBeenCalledWith({
         where: { companyId, status: 'due' },
-        order: [['dueDate', 'DESC']],
+        order: [['dueDate', 'desc']],
         raw: true,
       });
       expect(result).toBe(mockInvoice);
     });
 
-    it('should return null if there are no due invoices', async () => {
+    it('should throw NotFoundError if there are no due invoices', async () => {
       const companyId = 'company-3';
       mockBreaker.execute.mockImplementationOnce(async (operation) => operation());
       (Invoice.findOne as jest.Mock).mockResolvedValueOnce(null);
 
-      const result = await getLatestInvoiceForCompany(companyId);
-      expect(result).toBeNull();
+      await expect(getLatestInvoiceForCompany(companyId)).rejects.toBeInstanceOf(NotFoundError);
     });
 
     it('should throw InternalServerError when invoice query fails', async () => {

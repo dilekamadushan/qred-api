@@ -1,7 +1,11 @@
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../../src/common/constants';
 import { getDashboard } from '../../src/controllers/dashboard.controller';
-import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
+import {
+  DbCircuitOpenError,
+  NotFoundError,
+  ServiceUnavailableError,
+} from '../../src/common/errors/appHttpError';
 import * as DashboardService from '../../src/services/dashboard.service';
 
 const mockRequest = (
@@ -59,7 +63,12 @@ describe('dashboardController', () => {
 
     describe('when selected company is not found', () => {
       it('throws a 404 app error', async () => {
-        jest.spyOn(DashboardService, 'getDashboardForUser').mockResolvedValue(null);
+        jest.spyOn(DashboardService, 'getDashboardForUser').mockRejectedValueOnce(
+          new NotFoundError({
+            detail: 'No selected company found for the authenticated user.',
+            code: 'selected_company_not_found',
+          })
+        );
 
         const req = mockRequest();
         const res = mockResponse();
@@ -86,19 +95,13 @@ describe('dashboardController', () => {
 
     describe('when all dashboard core sections fail', () => {
       it('throws a 503 app error', async () => {
-        const data = {
-          company: { value: { id: 'cmp_1', name: 'Company AB', hasMoreCompanies: false } },
-          card: { error: 'card error' },
-          spend: { error: 'spend error' },
-          transactions: { error: 'transactions error' },
-          viewMore: { error: 'transactions error' },
-        };
-
-        jest
-          .spyOn(DashboardService, 'getDashboardForUser')
-          .mockResolvedValue(
-            data as Awaited<ReturnType<typeof DashboardService.getDashboardForUser>>
-          );
+        jest.spyOn(DashboardService, 'getDashboardForUser').mockRejectedValueOnce(
+          new ServiceUnavailableError({
+            detail:
+              'Dashboard data is temporarily unavailable because all core sections failed. Please retry shortly.',
+            code: 'service_unavailable',
+          })
+        );
 
         const req = mockRequest();
         const res = mockResponse();

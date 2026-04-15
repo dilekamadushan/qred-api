@@ -1,10 +1,21 @@
+import { sequelize } from '../../src/db/sequelize';
 import { UserCompanyMembership } from '../../src/db/models/user-company-membership';
 import * as CompaniesService from '../../src/services/companies.service';
 import * as LogUtils from '../../src/common/utils/logUtils';
-import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
+import {
+  DbCircuitOpenError,
+  InternalServerError,
+  NotFoundError,
+} from '../../src/common/errors/appHttpError';
 import { sharedDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
 import { encodeCursor } from '../../src/common/utils/pagination';
 
+jest.mock('../../src/db/sequelize', () => ({
+  __esModule: true,
+  sequelize: {
+    transaction: jest.fn(),
+  },
+}));
 jest.mock('../../src/db/models/user-company-membership');
 jest.mock('../../src/db/models/company');
 
@@ -26,9 +37,17 @@ function makeMembership(overrides: Record<string, unknown> = {}) {
 
 describe('CompaniesService', () => {
   let logErrorSpy: jest.SpyInstance;
+  let transactionMock: { commit: jest.Mock; rollback: jest.Mock; finished?: string };
 
   beforeEach(() => {
     logErrorSpy = jest.spyOn(LogUtils, 'logError').mockImplementation(() => {});
+    transactionMock = {
+      commit: jest.fn().mockResolvedValue(undefined),
+      rollback: jest.fn().mockResolvedValue(undefined),
+      finished: undefined,
+    };
+
+    (sequelize.transaction as jest.Mock).mockResolvedValue(transactionMock);
   });
 
   afterEach(() => {
@@ -191,46 +210,140 @@ describe('CompaniesService', () => {
     });
   });
 
+  describe('getSelectedCompanyForUser', () => {
+    it('returns selected company section when membership exists', async () => {
+      (UserCompanyMembership.findOne as jest.Mock).mockResolvedValueOnce(
+        makeMembership({
+          companyId: 'cmp_1',
+          isSelected: true,
+          company: { id: 'cmp_1', name: 'Alpha Corp' },
+        })
+      );
+      (UserCompanyMembership.count as jest.Mock).mockResolvedValueOnce(2);
+
+      const result = await CompaniesService.getSelectedCompanyForUser('user_123');
+
+      expect(result).toEqual({
+        companyId: 'cmp_1',
+        section: {
+          value: {
+            id: 'cmp_1',
+            name: 'Alpha Corp',
+            hasMoreCompanies: true,
+          },
+        },
+      });
+      expect(logErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundError when no membership exists for user', async () => {
+      (UserCompanyMembership.findOne as jest.Mock).mockResolvedValueOnce(null);
+      (UserCompanyMembership.count as jest.Mock).mockResolvedValueOnce(0);
+
+      await expect(CompaniesService.getSelectedCompanyForUser('user_123')).rejects.toBeInstanceOf(
+        NotFoundError
+      );
+      expect(logErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundError when membership has no company relation', async () => {
+      (UserCompanyMembership.findOne as jest.Mock).mockResolvedValueOnce(
+        makeMembership({ company: null })
+      );
+      (UserCompanyMembership.count as jest.Mock).mockResolvedValueOnce(1);
+
+      await expect(CompaniesService.getSelectedCompanyForUser('user_123')).rejects.toBeInstanceOf(
+        NotFoundError
+      );
+      expect(logErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('logs exact error and throws InternalServerError when selected company query fails', async () => {
+      const dbError = new Error('db error');
+      (UserCompanyMembership.findOne as jest.Mock).mockRejectedValueOnce(dbError);
+
+      await expect(CompaniesService.getSelectedCompanyForUser('user_123')).rejects.toBeInstanceOf(
+        InternalServerError
+      );
+
+      expect(logErrorSpy).toHaveBeenCalledWith(
+        'CompaniesService',
+        'Error querying selected company for userId: user_123',
+        dbError
+      );
+      expect(logErrorSpy).toHaveBeenCalledTimes(1);
+    });
+
+    describe('when circuit breaker execution fails', () => {
+      it('rethrows DbCircuitOpenError without service logging', async () => {
+        const error = new DbCircuitOpenError();
+        jest.spyOn(sharedDbCircuitBreaker, 'execute').mockRejectedValueOnce(error);
+
+        await expect(CompaniesService.getSelectedCompanyForUser('user_123')).rejects.toBeInstanceOf(
+          DbCircuitOpenError
+        );
+        expect(logErrorSpy).toHaveBeenCalledTimes(0);
+      });
+
+      it('propagates non-circuit errors without service logging', async () => {
+        jest
+          .spyOn(sharedDbCircuitBreaker, 'execute')
+          .mockRejectedValueOnce(new Error('breaker failure'));
+
+        await expect(CompaniesService.getSelectedCompanyForUser('user_123')).rejects.toThrow(
+          'breaker failure'
+        );
+        expect(logErrorSpy).toHaveBeenCalledTimes(0);
+      });
+    });
+  });
+
   // ─── selectCompanyForUser ───────────────────────────────────────────────────
 
-  describe('selectCompanyForUser', () => {
+  describe('updateSelectionCompanyForUser', () => {
     it('returns true and performs two updates when membership exists', async () => {
-      (UserCompanyMembership.findOne as jest.Mock).mockResolvedValueOnce({ id: 'mem-1' });
-      (UserCompanyMembership.update as jest.Mock).mockResolvedValue([1]);
+      (UserCompanyMembership.update as jest.Mock)
+        .mockResolvedValueOnce([1])
+        .mockResolvedValueOnce([1]);
 
-      const result = await CompaniesService.selectCompanyForUser('user_123', 'cmp_1');
+      const result = await CompaniesService.updateSelectedCompanyForUser('user_123', 'cmp_1');
 
       expect(result).toBe(true);
       expect(UserCompanyMembership.update).toHaveBeenCalledTimes(2);
-      // First call deselects all
+      expect(transactionMock.commit).toHaveBeenCalledTimes(1);
+      expect(transactionMock.rollback).not.toHaveBeenCalled();
       expect((UserCompanyMembership.update as jest.Mock).mock.calls[0][0]).toEqual({
         isSelected: false,
       });
-      // Second call selects the target
       expect((UserCompanyMembership.update as jest.Mock).mock.calls[1][0]).toEqual({
         isSelected: true,
       });
     });
 
-    it('returns false when membership is not found', async () => {
-      (UserCompanyMembership.findOne as jest.Mock).mockResolvedValueOnce(null);
+    it('throws NotFoundError when membership is not found', async () => {
+      (UserCompanyMembership.update as jest.Mock)
+        .mockResolvedValueOnce([1])
+        .mockResolvedValueOnce([0]);
 
-      const result = await CompaniesService.selectCompanyForUser('user_123', 'cmp_999');
+      await expect(
+        CompaniesService.updateSelectedCompanyForUser('user_123', 'cmp_999')
+      ).rejects.toBeInstanceOf(NotFoundError);
 
-      expect(result).toBe(false);
-      expect(UserCompanyMembership.update).not.toHaveBeenCalled();
+      expect(UserCompanyMembership.update).toHaveBeenCalledTimes(2);
+      expect(transactionMock.rollback).toHaveBeenCalledTimes(1);
+      expect(transactionMock.commit).not.toHaveBeenCalled();
     });
 
     it('logs and throws InternalServerError when DB fails', async () => {
-      (UserCompanyMembership.findOne as jest.Mock).mockRejectedValueOnce(new Error('db error'));
+      (UserCompanyMembership.update as jest.Mock).mockRejectedValueOnce(new Error('db error'));
 
       await expect(
-        CompaniesService.selectCompanyForUser('user_123', 'cmp_1')
+        CompaniesService.updateSelectedCompanyForUser('user_123', 'cmp_1')
       ).rejects.toBeInstanceOf(InternalServerError);
 
       expect(logErrorSpy).toHaveBeenCalledWith(
         'CompaniesService',
-        expect.stringContaining('Error querying companies for userId: user_123'),
+        expect.stringContaining('Error updating selected company cmp_1 for userId: user_123'),
         expect.any(Error)
       );
     });
@@ -241,7 +354,7 @@ describe('CompaniesService', () => {
         jest.spyOn(sharedDbCircuitBreaker, 'execute').mockRejectedValueOnce(error);
 
         await expect(
-          CompaniesService.selectCompanyForUser('user_123', 'cmp_1')
+          CompaniesService.updateSelectedCompanyForUser('user_123', 'cmp_1')
         ).rejects.toBeInstanceOf(DbCircuitOpenError);
       });
 
@@ -250,9 +363,9 @@ describe('CompaniesService', () => {
           .spyOn(sharedDbCircuitBreaker, 'execute')
           .mockRejectedValueOnce(new Error('breaker failure'));
 
-        await expect(CompaniesService.selectCompanyForUser('user_123', 'cmp_1')).rejects.toThrow(
-          'breaker failure'
-        );
+        await expect(
+          CompaniesService.updateSelectedCompanyForUser('user_123', 'cmp_1')
+        ).rejects.toThrow('breaker failure');
       });
     });
   });

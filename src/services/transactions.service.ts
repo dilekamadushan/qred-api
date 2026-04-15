@@ -9,7 +9,7 @@ import { Transaction } from '../db/models/transaction';
 import { buildCursorPage, decodeCursor } from '../common/utils/pagination';
 import { sharedDbCircuitBreaker } from './circuitBreaker.service';
 import { logError } from '../common/utils/logUtils';
-import { DEFAULT_PAGE_SIZE } from '../common/constants';
+import { DEFAULT_PAGE_SIZE, SORT_ORDER } from '../common/constants';
 import { InternalServerError } from '../common/errors/appHttpError';
 import {
   buildTransactionPaginationClause,
@@ -48,7 +48,7 @@ async function queryTransactions(
       cursor,
       pageSize = DEFAULT_PAGE_SIZE,
       sortBy = 'createdAt',
-      sortOrder = 'desc',
+      sortOrder = SORT_ORDER.DESC,
     } = options;
 
     const andClauses = buildTransactionWhereClauses(companyId, userId, options);
@@ -61,7 +61,7 @@ async function queryTransactions(
     }
 
     const dbSortField = sortBy === 'amount' ? 'amountMinor' : sortBy;
-    const normalizedSortOrder = sortOrder.toUpperCase() as 'ASC' | 'DESC';
+    const normalizedSortOrder = sortOrder.toUpperCase() as [keyof typeof SORT_ORDER][number];
 
     // Fetch one extra to determine if there is a next page
     const transactions = await Transaction.findAll({
@@ -106,8 +106,8 @@ async function queryTransactionPreview(
         where,
         attributes: ['id', 'description', 'amountMinor', 'createdAt', 'merchantUrl'],
         order: [
-          ['createdAt', 'DESC'],
-          ['id', 'DESC'],
+          ['createdAt', SORT_ORDER.DESC],
+          ['id', SORT_ORDER.DESC],
         ],
         limit: previewLimit,
         raw: true,

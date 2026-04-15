@@ -1,8 +1,13 @@
+import { Op } from 'sequelize';
 import { Card } from '../../src/db/models/card';
 import * as CardService from '../../src/services/cards.service';
 import * as LogUtils from '../../src/common/utils/logUtils';
 import { randomUUID } from 'crypto';
-import { DbCircuitOpenError, InternalServerError } from '../../src/common/errors/appHttpError';
+import {
+  DbCircuitOpenError,
+  InternalServerError,
+  NotFoundError,
+} from '../../src/common/errors/appHttpError';
 import { sharedDbCircuitBreaker } from '../../src/services/circuitBreaker.service';
 
 jest.mock('../../src/db/models/card');
@@ -21,11 +26,9 @@ function createMockCard(overrides = {}) {
 }
 
 describe('CardService', () => {
-  let logWarnSpy: jest.SpyInstance;
   let logErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    logWarnSpy = jest.spyOn(LogUtils, 'logWarn').mockImplementation(() => {});
     logErrorSpy = jest.spyOn(LogUtils, 'logError').mockImplementation(() => {});
   });
 
@@ -45,15 +48,34 @@ describe('CardService', () => {
     });
 
     describe('when no default card exists', () => {
-      it('returns null and logs warn', async () => {
-        (Card.findOne as jest.Mock).mockResolvedValueOnce(null);
+      it('falls back to the next available card using default-first ordering', async () => {
+        const fallbackCard = createMockCard({ isDefault: false, displayName: 'Backup Card' });
+        (Card.findOne as jest.Mock).mockResolvedValueOnce(fallbackCard);
+
         const result = await CardService.getDefaultCardForCompany('cmp_123', 'user_123');
 
-        expect(result).toBeNull();
-        expect(logWarnSpy).toHaveBeenCalledWith(
-          'CardService',
-          expect.stringContaining('No default card found')
+        expect(result).toEqual(fallbackCard);
+        expect(Card.findOne).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({
+              companyId: 'cmp_123',
+              userId: 'user_123',
+              status: { [Op.not]: 'closed' },
+            }),
+            order: [
+              ['isDefault', 'DESC'],
+              ['createdAt', 'DESC'],
+            ],
+          })
         );
+      });
+
+      it('throws NotFoundError and logs warn when no card exists at all', async () => {
+        (Card.findOne as jest.Mock).mockResolvedValueOnce(null);
+
+        await expect(
+          CardService.getDefaultCardForCompany('cmp_123', 'user_123')
+        ).rejects.toBeInstanceOf(NotFoundError);
       });
     });
 

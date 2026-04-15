@@ -315,7 +315,7 @@ export interface components {
                          * @example https://cdn.qred.example.com/card-artwork/visa.png
                          */
                         artworkUrl: string | null;
-                    };
+                    } | null;
                 } & components["schemas"]["DashboardSection"];
                 spend: {
                     value?: {
@@ -325,7 +325,7 @@ export interface components {
                         total: number;
                         /** @example SEK */
                         currency: string;
-                    };
+                    } | null;
                 } & components["schemas"]["DashboardSection"];
                 transactions: {
                     value?: {

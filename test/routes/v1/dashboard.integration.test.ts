@@ -184,6 +184,18 @@ describe('GET /api/v1/dashboard', () => {
       expect(response.body.data.viewMore.value).toBeDefined();
     });
 
+    it('returns a null card section when no card exists yet', async () => {
+      await Card.destroy({ where: { companyId, userId } });
+
+      const response = await request(app).get(endpoint).set('Authorization', 'Bearer test-token');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.company.value).toBeDefined();
+      expect(response.body.data.card).toEqual({ value: null });
+      expect(response.body.data.spend.value).toBeDefined();
+      expect(response.body.data.transactions.value.items).toBeDefined();
+    });
+
     it('returns partial data when two sections fail', async () => {
       jest.spyOn(UserCompanySpend, 'findOne').mockRejectedValue(new Error('spend db error'));
       jest.spyOn(Transaction, 'findAll').mockRejectedValue(new Error('transactions db error'));
@@ -198,6 +210,18 @@ describe('GET /api/v1/dashboard', () => {
         'Failed to load transaction preview data.'
       );
       expect(response.body.data.viewMore.error).toBe('Failed to load transaction preview data.');
+    });
+
+    it('returns a null spend section when no spend record exists yet', async () => {
+      await UserCompanySpend.destroy({ where: { companyId, userId } });
+
+      const response = await request(app).get(endpoint).set('Authorization', 'Bearer test-token');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.company.value).toBeDefined();
+      expect(response.body.data.card.value).toBeDefined();
+      expect(response.body.data.spend).toEqual({ value: null });
+      expect(response.body.data.transactions.value.items).toBeDefined();
     });
 
     it('returns 503 when card, spend, and transactions all fail', async () => {

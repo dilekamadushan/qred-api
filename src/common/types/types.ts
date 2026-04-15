@@ -1,4 +1,5 @@
 import type { components } from '../../generated/openapi';
+import type { SORT_ORDER } from '../constants';
 
 export type TransactionSummary = components['schemas']['TransactionSummary'];
 export type PageInfo = components['schemas']['PageInfo'];
@@ -6,7 +7,7 @@ export type TransactionListResponse = components['schemas']['TransactionListResp
 export type CursorPayload = { createdAt: string; id: string };
 export type TransactionListData = TransactionListResponse['data'];
 export type SortBy = 'createdAt' | 'amount' | 'merchantName';
-export type SortOrder = 'asc' | 'desc';
+export type SortOrder = [keyof typeof SORT_ORDER][number];
 export type TransactionStatus = 'pending' | 'booked' | 'declined' | 'reversed';
 
 export type TransactionQueryOptions = {

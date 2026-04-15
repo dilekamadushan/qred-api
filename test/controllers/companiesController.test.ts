@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import { HTTP_STATUS } from '../../src/common/constants';
-import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
+import { DbCircuitOpenError, NotFoundError } from '../../src/common/errors/appHttpError';
 import { listCompanies, updateCompanySelection } from '../../src/controllers/companies.controller';
 import * as CompaniesService from '../../src/services/companies.service';
 
@@ -140,20 +140,29 @@ describe('companiesController', () => {
 
   describe('updateCompanySelection', () => {
     it('returns 200 with success=true when membership exists', async () => {
-      jest.spyOn(CompaniesService, 'selectCompanyForUser').mockResolvedValueOnce(true);
+      jest.spyOn(CompaniesService, 'updateSelectedCompanyForUser').mockResolvedValueOnce(true);
 
       const req = mockRequest({}, { companyId: 'cmp_1' });
       const res = mockResponse();
 
       await updateCompanySelection(req, res);
 
-      expect(CompaniesService.selectCompanyForUser).toHaveBeenCalledWith('test-user-id', 'cmp_1');
+      expect(CompaniesService.updateSelectedCompanyForUser).toHaveBeenCalledWith(
+        'test-user-id',
+        'cmp_1'
+      );
       expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
       expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 
     it('throws NotFoundError when membership is not found', async () => {
-      jest.spyOn(CompaniesService, 'selectCompanyForUser').mockResolvedValueOnce(false);
+      jest.spyOn(CompaniesService, 'updateSelectedCompanyForUser').mockRejectedValueOnce(
+        new NotFoundError({
+          detail: 'No company membership found for the requested company.',
+          code: 'company_membership_not_found',
+          title: 'company_membership_not_found',
+        })
+      );
 
       await expect(
         updateCompanySelection(mockRequest({}, { companyId: 'cmp_999' }), mockResponse())
@@ -165,7 +174,7 @@ describe('companiesController', () => {
 
     it('propagates DbCircuitOpenError to middleware', async () => {
       jest
-        .spyOn(CompaniesService, 'selectCompanyForUser')
+        .spyOn(CompaniesService, 'updateSelectedCompanyForUser')
         .mockRejectedValueOnce(new DbCircuitOpenError());
 
       await expect(
@@ -175,7 +184,7 @@ describe('companiesController', () => {
 
     it('propagates unexpected errors to middleware', async () => {
       jest
-        .spyOn(CompaniesService, 'selectCompanyForUser')
+        .spyOn(CompaniesService, 'updateSelectedCompanyForUser')
         .mockRejectedValueOnce(new Error('unexpected'));
 
       await expect(

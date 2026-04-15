@@ -3,6 +3,7 @@ import app from '../../../src/app';
 import { addTestData, clearTestDatabase, setupTestDb } from '../../helpers/testDbUtils';
 import { uuid } from '../../../src/db/seed/seed';
 import { Invoice } from '../../../src/db/models';
+import { sharedDbCircuitBreaker } from '../../../src/services/circuitBreaker.service';
 
 const companyId = uuid.cmp1;
 const endpoint = `/api/v1/companies/${companyId}/invoices/latest`;
@@ -15,6 +16,7 @@ describe('routes', () => {
 
     beforeEach(async () => {
       await clearTestDatabase();
+      await sharedDbCircuitBreaker.reset();
     });
 
     describe('when there is a due invoice', () => {

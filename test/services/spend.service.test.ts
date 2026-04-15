@@ -10,7 +10,9 @@ describe('SpendService', () => {
   let logErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.restoreAllMocks();
     logErrorSpy = jest.spyOn(LogUtils, 'logError').mockImplementation(() => {});
+    sharedDbCircuitBreaker.execute = jest.fn(async (action) => action());
   });
 
   afterEach(() => {
@@ -37,12 +39,16 @@ describe('SpendService', () => {
       });
     });
 
-    it('returns null when no spend data exists', async () => {
+    it('throws NotFoundError when no spend data exists', async () => {
       (UserCompanySpend.findOne as jest.Mock).mockResolvedValueOnce(null);
 
-      const result = await SpendService.getRemainingSpendForCompany('user_123', 'cmp_123');
-
-      expect(result).toBeNull();
+      await expect(
+        SpendService.getRemainingSpendForCompany('user_123', 'cmp_123')
+      ).rejects.toMatchObject({
+        name: 'NotFoundError',
+        status: 404,
+        code: 'remaining_spend_not_found',
+      });
     });
 
     it('logs and throws when DB fails', async () => {

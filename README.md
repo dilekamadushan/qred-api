@@ -1,41 +1,167 @@
+# Task - 1 - [Presentation](#https://docs.google.com/presentation/d/1L2A2PJD2Jn7Hlba91xe6iCpZgrJgySrIhVK-o8sUm8A/edit?slide=id.g3d623873ccc_0_0#slide=id.g3d623873ccc_0_0)
+
+# Task-2 Implementing Qred-API
+
+This project implements a robust, production-grade backend API for a mobile dashboard, following the Backend-for-Frontend (BFF) pattern. The API is designed for resilience, maintainability, and strict
+contract alignment using OpenAPI as the single source of truth.
+
+## Table of Contents
+
+- [Further Improvements](#further-improvements)
+- [Key Features Implemented](#key-features--implemented)
+- [Merged pull requests](#merged-pull-requests)
+- [Getting started](#getting-started)
+- [Commit History (commit history)](#commit-history)
+
+## Further Improvements
+
+- Security: Add authentication/authorization middleware to verify jwt token with secret key.
+- Integrate standard logger such as winston for industrial level application
+- CI/CD: Set up automated tests and linting in CI.
+- Frontend Collaboration: Host the shared API mock server for frontend use.
+- Performance: Add caching (e.g., Redis) for dashboard endpoints.
+- Monitoring: Integrate metrics and tracing (e.g., Prometheus, OpenTelemetry).
+- Feedback: Propose regular retrospectives to improve the API delivery process.
+
+### 1. Observability & Operations
+
+- **Structured Logging:** Integrate a structured logger (e.g., pino, winston) with trace IDs and correlation for all requests.
+- **Distributed Tracing:** Add OpenTelemetry for end-to-end tracing across services and DB calls.
+- **Metrics:** Expose Prometheus metrics for key API, DB, and circuit breaker events.
+- **Alerting:** Set up SLO-based alerting for error rates, latency, and circuit breaker open events.
+
+### 2. Security & Compliance
+
+- **OAuth2/JWT:** Integrate with a real auth provider (e.g., Auth0, Azure AD) and enforce scopes/roles.
+- **Audit Logging:** Track sensitive actions and data access for compliance.
+- **Secrets Management:** Move secrets to a vault (e.g., AWS Secrets Manager, HashiCorp Vault).
+
+### 3. Developer Experience & CI/CD
+
+- **Type-Safe API Client:** Auto-generate a TypeScript client SDK from OpenAPI for frontend use.
+- **Contract-First CI:** Add CI checks to block merges if OpenAPI and implementation drift.
+- **Preview Environments:** Use ephemeral environments for every PR (e.g., with Docker Compose or Vercel/Nx).
+- **Test Data Factories:** Use factories (e.g., fishery) for more expressive test data.
+
+### 4. Performance & Scalability
+
+- **Caching:** Add Redis for hot-path caching (e.g., company, card, spend summaries).
+- **Async Processing:** Move slow/side-effecting flows (e.g., invoice generation) to background jobs (BullMQ, SQS).
+- **Horizontal Scaling:** Containerize and add Kubernetes manifests for production scaling.
+
+### 5. Product & Team Collaboration
+
+- **API Review Rituals:** Schedule regular contract review sessions with FE/PM to catch ambiguity early.
+- **API Versioning:** Plan for versioned APIs (e.g., v2) with clear deprecation policy.
+- **API Analytics:** Track endpoint usage and error rates to inform product decisions.
+
+### 6. Documentation & Onboarding
+
+- **Interactive API Docs:** Integrate Redoc or Stoplight for live, interactive docs.
+- **Architecture Decision Records (ADR):** Document key design decisions and tradeoffs.
+- **Onboarding Guide:** Add a step-by-step onboarding guide for new engineers.
+
 ---
 
-# Project Summary
+These steps would ensure the API is not only robust and maintainable, but also observable, secure, and a joy to work with for both engineers and product teams.
 
-This project implements a robust, production-grade backend API for a mobile dashboard, following the Backend-for-Frontend (BFF) pattern. The API is designed for resilience, maintainability, and strict contract alignment using OpenAPI as the single source of truth.
+## Key Features Implemented
 
-## Key Features
+    ### Motivation
+    This architecture ensures:
+      - Fast, resilient, and user-friendly mobile dashboard experiences
+      - Clear separation of concerns and maintainability
+      - Easy onboarding and review for product, frontend, and backend teams
+      - Predictable, contract-driven development with minimal ambiguity
 
-- **OpenAPI-Driven Development:** All endpoints and schemas are defined in OpenAPI and strictly validated at runtime. TypeScript types are generated from the contract.
-- **Dashboard Endpoint:** The `/dashboard` endpoint aggregates company, card, spend, and transaction preview data in parallel, returning partial responses if any section fails (with per-section error objects). This ensures the UI remains responsive and resilient.
-- **Service Extraction:** Spend and transaction preview logic are implemented as reusable services, supporting both dashboard aggregation and granular endpoints.
-- **Resilience Patterns:**
-  - **SLA Timeouts:** Each dashboard section has a per-section timeout (e.g., `DASHBOARD_SECTION_TIMEOUT_MS`) to prevent slow dependencies from blocking the whole response.
-  - **Circuit Breaker:** All DB/service calls are wrapped in circuit breakers to prevent cascading failures and return partial data if a dependency is down.
-  - **Rate Limiting:** Endpoints are protected with rate limiting to ensure fair usage and protect backend resources.
-- **Error Handling:** Section-level errors are returned for partial failures, following the ProblemDetails (RFC 7807) pattern for machine-readable error responses.
-- **Comprehensive Testing:**
+- OpenAPI-Driven Development- All endpoints and schemas are defined in OpenAPI and strictly validated at runtime. TypeScript types are generated from the contract.
+- Setting up prettier and lint for enhncing quality of code and readability
+- Dashboard Endpoint - The `/dashboard` endpoint aggregates company, card, spend, and transaction preview data in parallel, returning partial responses if any section fails (with per-section error objects). This ensures the UI remains responsive and resilient.
+- Service Extraction - Spend and transaction preview logic are implemented as reusable services, supporting both dashboard aggregation and granular endpoints.
+- Resilience Patterns:
+  - SLA Timeouts: Each dashboard section has a per-section timeout (e.g., `DASHBOARD_SECTION_TIMEOUT_MS`) to prevent slow dependencies from blocking the whole response.
+  - Circuit Breaker: All DB/service calls are wrapped in circuit breakers to prevent cascading failures and return partial data if a dependency is down.
+  - Rate Limiting: Endpoints are protected with rate limiting to ensure fair usage and protect backend resources.
+- Error Handling: Section-level errors are returned for partial failures, following the ProblemDetails (RFC 7807) pattern for machine-readable error responses.
+- Comprehensive Testing:
   - Unit and integration tests cover all endpoints, including partial response scenarios (rate limit, circuit breaker open, timeouts).
   - Test/dev environments inject a fixed user for seamless local development and testing.
-- **Automation:** OpenAPI bundle and type generation are automated in the build lifecycle, ensuring contract and types are always up to date.
+- Automation: OpenAPI bundle and type generation are automated in the build lifecycle, ensuring contract and types are always up to date.
 
-## Technical Stack
-- Node.js, Express, Sequelize ORM
-- Jest for testing
-- OpenAPI/Swagger for contract and docs
-- Circuit breaker: Opossum
-- Rate limiting: express-rate-limit
+## Merged Pull requests
 
-## Motivation
-This architecture ensures:
-- Fast, resilient, and user-friendly mobile dashboard experiences
-- Clear separation of concerns and maintainability
-- Easy onboarding and review for product, frontend, and backend teams
-- Predictable, contract-driven development with minimal ambiguity
+The changes to the repo were done in [pull requests](https://github.com/dilekamadushan/qred-api/pulls?q=is%3Apr+is%3Aclosed) so it's easier to track the progress and closer to working in a production scenario
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20.19+ or 22.12+
+- npm
+
+### Install
+
+```bash
+npm install
+```
+
+### Run API in Development
+
+```bash
+npm run dev
+```
+
+Default API URL:
+
+- http://localhost:3000
+
+### Build and Run Production Mode Locally
+
+```bash
+npm run build
+npm start
+```
+
+### Database Setup
+
+```bash
+npm run db:setup
+npm run db:seed
+```
+
+## Mock Server and API Docs
+
+### Start Mock Server from OpenAPI
+
+Static examples:
+
+```bash
+npm run mock
+```
+
+Dynamic example generation:
+
+```bash
+npm run mock:dynamic
+```
+
+Default mock URL:
+
+- http://localhost:4010
+
+### Start Swagger UI
+
+```bash
+npm run docs:swagger
+```
+
+Swagger UI URL:
+
+- http://localhost:8080
 
 ---
 
-# Qred API
+# Commit History
 
 ## First commit
 

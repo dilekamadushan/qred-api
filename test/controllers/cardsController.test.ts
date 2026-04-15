@@ -1,6 +1,6 @@
 import { getDefaultCard } from '../../src/controllers/cards.controller';
 import * as CardService from '../../src/services/cards.service';
-import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
+import { DbCircuitOpenError, NotFoundError } from '../../src/common/errors/appHttpError';
 import { HTTP_STATUS } from '../../src/common/constants';
 import { randomUUID } from 'crypto';
 
@@ -54,7 +54,13 @@ describe('cardsController', () => {
 
     describe('when no card is found', () => {
       it('throws a 404 app error', async () => {
-        jest.spyOn(CardService, 'getDefaultCardForCompany').mockResolvedValue(null);
+        jest.spyOn(CardService, 'getDefaultCardForCompany').mockRejectedValue(
+          new NotFoundError({
+            detail: 'No default card exists for company cmp_123.',
+            code: 'default_card_not_found',
+            title: 'default_card_not_found',
+          })
+        );
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 

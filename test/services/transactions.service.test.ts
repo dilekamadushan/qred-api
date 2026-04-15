@@ -67,7 +67,7 @@ describe('TransactionService', () => {
         dateTo: '2026-04-30',
         pageSize: 25,
         sortBy: 'amount',
-        sortOrder: 'asc',
+        sortOrder: 'ASC',
         search: 'coffee',
       });
 
@@ -89,7 +89,7 @@ describe('TransactionService', () => {
 
       await TransactionService.getTransactionsForCompany('cmp_123', 'user_123', {
         cursor,
-        sortOrder: 'desc',
+        sortOrder: 'DESC',
       });
 
       const findAllArg = (Transaction.findAll as jest.Mock).mock.calls[0][0];
@@ -173,8 +173,8 @@ describe('TransactionService', () => {
         where: { companyId: 'cmp_123', userId: 'user_123' },
         attributes: ['id', 'description', 'amountMinor', 'createdAt', 'merchantUrl'],
         order: [
-          ['createdAt', 'DESC'],
-          ['id', 'DESC'],
+          ['createdAt', 'desc'],
+          ['id', 'desc'],
         ],
         limit: 2,
         raw: true,

@@ -1,73 +1,37 @@
-import { Company } from '../db/models/company';
-import { UserCompanyMembership } from '../db/models/user-company-membership';
 import { getDefaultCardForCompany } from './cards.service';
-import { sharedDbCircuitBreaker } from './circuitBreaker.service';
 import { getRemainingSpendForCompany } from './spend.service';
 import { getTransactionPreviewForCompany } from './transactions.service';
 import { logWarn } from '../common/utils/logUtils';
-import { CARD_STATUS, DASHBOARD_SECTION_TIMEOUT_MS } from '../common/constants';
+import { NotFoundError, ServiceUnavailableError } from '../common/errors/appHttpError';
+import { CARD_STATUS } from '../common/constants';
 import { mapRemainingSpendToDashboardValue } from '../common/utils/money';
-import { InternalServerError } from '../common/errors/appHttpError';
 
 import type {
   CardValue,
   DashboardData,
   SectionError,
   SectionWithValue,
-  SelectedCompanyResult,
 } from '../common/types/types';
 
-import { mapSection } from '../common/utils/dashboard';
+import { hasSectionError, mapSection } from '../common/utils/dashboard';
 import { withSlaTimeout } from '../common/utils/async';
+import { getSelectedCompanyForUser } from './companies.service';
 
 export async function getDashboardForUser(
   userId: string,
-  transactionPreviewLimit?: number
-): Promise<DashboardData | null> {
-  const selectedCompany = await sharedDbCircuitBreaker.execute(() =>
-    withSlaTimeout(querySelectedCompany(userId), DASHBOARD_SECTION_TIMEOUT_MS)
+  transactionPreviewLimit: number
+): Promise<DashboardData> {
+  const selectedCompany = await withSlaTimeout(
+    getSelectedCompanyForUser(userId),
+    'selected company query'
   );
-
-  if (!selectedCompany) return null;
-
-  const previewLimit = transactionPreviewLimit ?? 3;
 
   // These run in parallel, but each section is isolated by loadSection so Promise.all still yields
   // an aggregated partial response instead of failing fast on section-level errors.
   const [card, spend, transactions] = await Promise.all([
-    loadSection('card', async () => {
-      const cardSummary = await withSlaTimeout(
-        getDefaultCardForCompany(selectedCompany.companyId, userId),
-        DASHBOARD_SECTION_TIMEOUT_MS
-      );
-      if (!cardSummary) {
-        throw new InternalServerError({ detail: 'No default card found' });
-      }
-
-      const status =
-        cardSummary.status === CARD_STATUS.CLOSED ? CARD_STATUS.BLOCKED : cardSummary.status;
-
-      return {
-        id: cardSummary.id,
-        status,
-        artworkUrl: cardSummary.artworkUrl,
-      } satisfies CardValue;
-    }),
-    loadSection('spend', async () => {
-      const spendSummary = await getRemainingSpendForCompany(userId, selectedCompany.companyId);
-      if (!spendSummary) {
-        throw new InternalServerError({ detail: 'No spend data available' });
-      }
-      return mapRemainingSpendToDashboardValue(spendSummary);
-    }),
-    loadSection('transactions', async () => {
-      const preview = await getTransactionPreviewForCompany(
-        selectedCompany.companyId,
-        userId,
-        previewLimit
-      );
-      return preview;
-    }),
+    loadCardSection(selectedCompany.companyId, userId),
+    loadSpendSection(userId, selectedCompany.companyId),
+    loadTransactionsSection(selectedCompany.companyId, userId, transactionPreviewLimit),
   ]);
 
   const cardSection: DashboardData['card'] = mapSection(card);
@@ -79,6 +43,22 @@ export async function getDashboardForUser(
     remainingTransactions: v.remainingTransactions,
   }));
 
+  if (
+    hasSectionError(cardSection) &&
+    hasSectionError(spendSection) &&
+    hasSectionError(transactionsSection)
+  ) {
+    logWarn(
+      'DashboardService',
+      'All core sections failed to load. Returning service unavailable error.'
+    );
+    throw new ServiceUnavailableError({
+      detail:
+        'Dashboard data is temporarily unavailable because all core sections failed. Please retry shortly.',
+      code: 'service_unavailable',
+    });
+  }
+
   return {
     company: selectedCompany.section,
     card: cardSection,
@@ -88,45 +68,60 @@ export async function getDashboardForUser(
   };
 }
 
-async function querySelectedCompany(userId: string): Promise<SelectedCompanyResult | null> {
-  const includeCompany = [
-    {
-      model: Company,
-      as: 'company',
-      attributes: ['id', 'name'],
-      required: true,
-    },
-  ];
+// Section loader for card
+async function loadCardSection(companyId: string, userId: string) {
+  return loadSection('card', async () => {
+    try {
+      const cardSummary = await withSlaTimeout(
+        getDefaultCardForCompany(companyId, userId),
+        'card lookup'
+      );
 
-  // this way we optimize finding selected company and total count
-  const [selectedMembership, membershipCount] = await Promise.all([
-    UserCompanyMembership.findOne({
-      where: { userId },
-      attributes: ['id', 'companyId', 'isSelected', 'createdAt'],
-      include: includeCompany,
-      order: [
-        ['isSelected', 'DESC'],
-        ['createdAt', 'DESC'],
-      ],
-    }),
-    UserCompanyMembership.count({ where: { userId } }),
-  ]);
+      const status =
+        cardSummary.status === CARD_STATUS.CLOSED ? CARD_STATUS.BLOCKED : cardSummary.status;
 
-  if (!selectedMembership) return null;
+      return {
+        id: cardSummary.id,
+        status,
+        artworkUrl: cardSummary.artworkUrl,
+      } satisfies CardValue;
+    } catch (error) {
+      if (error instanceof NotFoundError) return null;
 
-  const company = selectedMembership.company;
-  if (!company) return null;
+      throw error;
+    }
+  });
+}
 
-  return {
-    companyId: company.id,
-    section: {
-      value: {
-        id: company.id,
-        name: company.name,
-        hasMoreCompanies: membershipCount > 1,
-      },
-    },
-  };
+// Section loader for spend
+async function loadSpendSection(userId: string, companyId: string) {
+  return loadSection('spend', async () => {
+    try {
+      const spendSummary = await getRemainingSpendForCompany(userId, companyId);
+
+      return mapRemainingSpendToDashboardValue(spendSummary);
+    } catch (error) {
+      if (error instanceof NotFoundError) return null;
+
+      throw error;
+    }
+  });
+}
+
+// Section loader for transactions
+async function loadTransactionsSection(
+  companyId: string,
+  userId: string,
+  transactionPreviewLimit: number
+) {
+  return loadSection('transactions', async () => {
+    const preview = await getTransactionPreviewForCompany(
+      companyId,
+      userId,
+      transactionPreviewLimit
+    );
+    return preview;
+  });
 }
 
 async function loadSection<T>(
@@ -135,9 +130,10 @@ async function loadSection<T>(
 ): Promise<SectionWithValue<T> | SectionError> {
   try {
     // Convert dependency failures into section-level errors so the dashboard can return partial data.
-    return { value: await withSlaTimeout(action(), DASHBOARD_SECTION_TIMEOUT_MS) };
+    return { value: await withSlaTimeout(action(), `${name} section`) };
   } catch (error) {
     logWarn('DashboardService', `${name} section failed`, error);
+
     return {
       error: error instanceof Error ? error.message : 'Service unavailable',
     };

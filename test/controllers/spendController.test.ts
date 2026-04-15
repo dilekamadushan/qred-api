@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import { HTTP_STATUS } from '../../src/common/constants';
-import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
+import { DbCircuitOpenError, NotFoundError } from '../../src/common/errors/appHttpError';
 import { getRemainingSpend } from '../../src/controllers/spend.controller';
 import * as SpendService from '../../src/services/spend.service';
 
@@ -62,7 +62,12 @@ describe('spendController', () => {
 
     describe('when spend summary is not found', () => {
       it('throws a 404 app error', async () => {
-        jest.spyOn(SpendService, 'getRemainingSpendForCompany').mockResolvedValue(null);
+        jest.spyOn(SpendService, 'getRemainingSpendForCompany').mockRejectedValue(
+          new NotFoundError({
+            detail: 'No remaining spend data found for company cmp_123.',
+            code: 'remaining_spend_not_found',
+          })
+        );
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 

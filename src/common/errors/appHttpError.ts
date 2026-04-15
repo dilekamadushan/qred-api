@@ -50,12 +50,12 @@ export class AppHttpError extends BaseAppError {
 export class NotFoundError extends AppHttpError {
   constructor({
     detail,
-    code,
+    code = ERROR_CODES.NOT_FOUND,
     title = ERROR_CODES.NOT_FOUND,
     errors = null,
   }: {
     detail: string;
-    code: string;
+    code?: string;
     title?: string;
     errors?: InvalidField[] | null;
   }) {

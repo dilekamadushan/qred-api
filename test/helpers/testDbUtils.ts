@@ -7,7 +7,7 @@ import {
   UserCompanyMembership,
   UserCompanySpend,
 } from '../../src/db/models';
-import sequelize from '../../src/db/sequelize';
+import { sequelize } from '../../src/db/sequelize';
 
 export async function clearTestDatabase() {
   await Transaction.destroy({ where: {} });

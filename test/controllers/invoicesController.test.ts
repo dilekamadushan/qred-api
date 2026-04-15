@@ -1,6 +1,6 @@
 import { getLatestInvoice } from '../../src/controllers/invoices.controller';
 import * as InvoiceService from '../../src/services/invoices.service';
-import { DbCircuitOpenError } from '../../src/common/errors/appHttpError';
+import { DbCircuitOpenError, NotFoundError } from '../../src/common/errors/appHttpError';
 import { HTTP_STATUS } from '../../src/common/constants';
 
 import type { Request, Response } from 'express';
@@ -65,7 +65,12 @@ describe('invoicesController', () => {
 
     describe('when no invoice is found', () => {
       it('throws a 404 app error', async () => {
-        jest.spyOn(InvoiceService, 'getLatestInvoiceForCompany').mockResolvedValue(null);
+        jest.spyOn(InvoiceService, 'getLatestInvoiceForCompany').mockRejectedValue(
+          new NotFoundError({
+            detail: 'No due invoice found for company cmp_123.',
+            code: 'invoice_not_found',
+          })
+        );
         const req = mockRequest({ companyId: 'cmp_123' });
         const res = mockResponse();
 

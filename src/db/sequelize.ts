@@ -16,7 +16,7 @@ if (!isInMemoryDatabase) {
   fs.mkdirSync(path.dirname(databaseStorage), { recursive: true });
 }
 
-const sequelize = new Sequelize({
+export const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: databaseStorage,
   logging: false,
@@ -48,5 +48,3 @@ export async function initializeDatabase(options?: { force?: boolean; seed?: boo
 
   return sequelize;
 }
-
-export default sequelize;

@@ -439,7 +439,7 @@ describe('routes', () => {
         volumeThreshold: 2,
         resetTimeout: 5000,
       });
-      jest.spyOn(UserCompanyMembership, 'findOne').mockRejectedValue(new Error('db unavailable'));
+      jest.spyOn(UserCompanyMembership, 'update').mockRejectedValue(new Error('db unavailable'));
 
       await request(app)
         .patch(patchEndpoint)
@@ -460,7 +460,7 @@ describe('routes', () => {
 
     it('returns 500 when DB throws an unexpected error', async () => {
       jest
-        .spyOn(UserCompanyMembership, 'findOne')
+        .spyOn(UserCompanyMembership, 'update')
         .mockRejectedValueOnce(new Error('unexpected db error'));
 
       const res = await request(app)
