@@ -2,7 +2,7 @@
 
 # Task-2 Implementing Qred-API
 
-This project implements a robust, production-grade backend API for a mobile dashboard, following the Backend-for-Frontend (BFF) pattern. The API is designed for resilience, maintainability, and strict
+This project implements a robust, production-grade backend REST API for a mobile dashboard, following the Backend-for-Frontend (BFF) pattern. The API is designed for resilience, maintainability, and strict
 contract alignment using OpenAPI as the single source of truth.
 
 ## Table of Contents
@@ -74,19 +74,25 @@ These steps would ensure the API is not only robust and maintainable, but also o
       - Easy onboarding and review for product, frontend, and backend teams
       - Predictable, contract-driven development with minimal ambiguity
 
-- OpenAPI-Driven Development- All endpoints and schemas are defined in OpenAPI and strictly validated at runtime. TypeScript types are generated from the contract.
-- Setting up prettier and lint for enhncing quality of code and readability
-- Dashboard Endpoint - The `/dashboard` endpoint aggregates company, card, spend, and transaction preview data in parallel, returning partial responses if any section fails (with per-section error objects). This ensures the UI remains responsive and resilient.
-- Service Extraction - Spend and transaction preview logic are implemented as reusable services, supporting both dashboard aggregation and granular endpoints.
-- Resilience Patterns:
+- #### OpenAPI-Driven Development -
+  - All endpoints and schemas are defined in OpenAPI and strictly validated at runtime. TypeScript types are generated from the contract.
+- #### Code quality
+  - Setting up prettier and lint for enhncing quality of code and readability
+- #### BFF pattern
+  - Dashboard Endpoint - The `/dashboard` endpoint aggregates company, card, spend, and transaction preview data in parallel, returning partial responses if any section fails (with per-section error objects). This ensures the UI remains responsive and resilient.
+- #### Resilience Patterns:
   - SLA Timeouts: Each dashboard section has a per-section timeout (e.g., `DASHBOARD_SECTION_TIMEOUT_MS`) to prevent slow dependencies from blocking the whole response.
   - Circuit Breaker: All DB/service calls are wrapped in circuit breakers to prevent cascading failures and return partial data if a dependency is down.
   - Rate Limiting: Endpoints are protected with rate limiting to ensure fair usage and protect backend resources.
-- Error Handling: Section-level errors are returned for partial failures, following the ProblemDetails (RFC 7807) pattern for machine-readable error responses.
-- Comprehensive Testing:
+- #### Error Handling: Section-level errors are returned for partial failures, following the ProblemDetails (RFC 7807) pattern for machine-readable error responses.
+- #### Comprehensive Testing:
   - Unit and integration tests cover all endpoints, including partial response scenarios (rate limit, circuit breaker open, timeouts).
   - Test/dev environments inject a fixed user for seamless local development and testing.
-- Automation: OpenAPI bundle and type generation are automated in the build lifecycle, ensuring contract and types are always up to date.
+- #### Automation:
+  - OpenAPI bundle and type generation are automated in the build lifecycle, ensuring contract and types are always up to date.
+- #### Correlated Logging for Traceability & Monitoring -
+  - Automatic Log Correlation: All log messages (logInfo, logWarn, logError).
+  - Automatically include the current requestId, enabling end-to-end traceability in logs without manual parameter passing.
 
 ## Merged Pull requests
 
@@ -381,3 +387,12 @@ This design ensures a fast, resilient, and user-friendly dashboard experience, e
 - Returns ProblemDetails (RFC 7807) error responses for all error cases, including 429 (rate-limited) and 503 (circuit breaker open).
 - Full unit and integration tests for all success and error scenarios.
 - Explicit tests for rate-limiting and circuit breaker failures.
+
+### Step 11
+
+- Added `POST /api/v1/card/:cardId/:status` to update card statuses.
+- Implemented with best practices like transactions to ensure the integrity of data.
+- Full unit and integration tests for all success and error scenarios.
+- Explicit tests for rate-limiting and circuit breaker failures.
+- Request ID Logging for Traceability & Monitoring -
+  Automatic Log Correlation: All log messages (logInfo, logWarn, logError) automatically include the current requestId, enabling end-to-end traceability in logs without manual parameter passing.

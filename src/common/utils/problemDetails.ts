@@ -4,14 +4,14 @@ import type { Request, Response } from 'express';
 import type { InvalidField, ProblemDetails } from '../types/types';
 
 export const createProblemDetails = ({
-  req,
+  request,
   status,
   title,
   detail,
   code,
   errors = null,
 }: {
-  req: Request;
+  request: Request;
   status: number;
   title: string;
   detail: string;
@@ -23,8 +23,8 @@ export const createProblemDetails = ({
     title,
     status,
     detail,
-    instance: `https://api.qred.example.com${req.originalUrl}`,
-    requestId: randomUUID(),
+    instance: `https://api.qred.example.com${request.originalUrl}`,
+    requestId: request.requestId ?? randomUUID(),
     code,
     errors,
   };
@@ -35,6 +35,7 @@ export const createProblemDetailsWithoutRequest = ({
   title,
   detail,
   code,
+  requestId,
   instance = null,
   errors = null,
 }: {
@@ -42,6 +43,7 @@ export const createProblemDetailsWithoutRequest = ({
   title: string;
   detail: string;
   code: string;
+  requestId?: string;
   instance?: string | null;
   errors?: InvalidField[] | null;
 }): ProblemDetails => {
@@ -51,7 +53,7 @@ export const createProblemDetailsWithoutRequest = ({
     status,
     detail,
     instance,
-    requestId: randomUUID(),
+    requestId: requestId ?? randomUUID(),
     code,
     errors,
   };

@@ -143,6 +143,12 @@
     responses:
       "200":
         description: Card activated successfully.
+        headers:
+          X-Request-Id:
+            description: Unique identifier for the request, useful for debugging and tracing.
+            schema:
+              type: string
+            example: req_9d3f3112
         content:
           application/json:
             schema:
@@ -154,8 +160,6 @@
                     cardId: card_987
                     status: active
                     activatedAt: "2026-04-10T10:16:05Z"
-                  meta:
-                    requestId: req_9d3f3112
       "400":
         $ref: "../components/responses.yaml#/BadRequest"
       "401":

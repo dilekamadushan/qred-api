@@ -35,8 +35,9 @@ export const DEFAULT_PAGE_SIZE = 10;
 
 export const CARD_STATUS = {
   ACTIVE: 'active',
-  INACTIVE: 'inactive',
   BLOCKED: 'blocked',
+  UNBLOCKED: 'unblocked',
+  PENDING_ACTIVATION: 'pending_activation',
   CLOSED: 'closed',
 } as const;
 
@@ -48,3 +49,13 @@ export const defaultCircuitBreakerOptions: Required<DbCircuitBreakerOptions> = {
 };
 
 export const DASHBOARD_SECTION_TIMEOUT_MS = 1200;
+
+export const CARD_SUMMARY_ATTRIBUTES = [
+  'id',
+  'status',
+  'displayName',
+  'maskedPan',
+  'brand',
+  'cardholderName',
+  'artworkUrl',
+] as const;

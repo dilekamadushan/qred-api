@@ -36,6 +36,7 @@ export const sendProblem = ({
       title,
       detail,
       code,
+      requestId: request.requestId,
       instance: getInstancePath(request),
       errors,
     }),

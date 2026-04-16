@@ -80,7 +80,7 @@ describe('utils/problem-details', () => {
     it('should create a ProblemDetails object with request', () => {
       const req = { originalUrl: '/test/url' } as Request;
       const details = createProblemDetails({
-        req,
+        request: req,
         status: 400,
         title: 'Bad Request',
         detail: 'Invalid input',

@@ -499,7 +499,7 @@ export interface components {
              * @example active
              * @enum {string}
              */
-            status: "pending_activation" | "active" | "blocked" | "closed";
+            status: "pending_activation" | "active" | "blocked" | "closed" | "unblocked";
             /** @example Main Card */
             displayName: string;
             /** @example **** **** **** 1234 */
@@ -656,7 +656,6 @@ export interface components {
                 /** Format: date-time */
                 activatedAt: string;
             };
-            meta: components["schemas"]["ResponseMeta"];
         };
         UnprocessableEntityProblemDetails: components["schemas"]["BaseProblemDetails"] & {
             /** @example https://api.qred.example.com/problems/unprocessable-entity */
@@ -1184,6 +1183,11 @@ export interface operations {
             /** @description Card activated successfully. */
             200: {
                 headers: {
+                    /**
+                     * @description Unique identifier for the request, useful for debugging and tracing.
+                     * @example req_9d3f3112
+                     */
+                    "X-Request-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {

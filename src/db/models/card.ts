@@ -8,9 +8,10 @@ import type {
 import { DataTypes, Model } from 'sequelize';
 
 import type { Company } from './company';
+import type { CardStatus } from '../../common/types/types';
+import { CARD_STATUS } from '../../common/constants';
 
 export const cardBrands = ['visa', 'mastercard'] as const;
-export const cardStatuses = ['pending_activation', 'active', 'blocked', 'closed'] as const;
 
 export class Card extends Model<InferAttributes<Card>, InferCreationAttributes<Card>> {
   declare id: string;
@@ -21,7 +22,7 @@ export class Card extends Model<InferAttributes<Card>, InferCreationAttributes<C
   declare brand: (typeof cardBrands)[number];
   declare cardholderName: string;
   declare artworkUrl: string;
-  declare status: (typeof cardStatuses)[number];
+  declare status: CardStatus;
   declare isDefault: boolean;
   declare activatedAt: Date | null;
   declare blockedAt: Date | null;
@@ -78,7 +79,7 @@ export function initCardModel(sequelize: Sequelize): typeof Card {
         defaultValue: 'https://example.com/card-artwork.png',
       },
       status: {
-        type: DataTypes.ENUM(...cardStatuses),
+        type: DataTypes.ENUM(...Object.values(CARD_STATUS)),
         allowNull: false,
       },
       isDefault: {
