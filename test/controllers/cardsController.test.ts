@@ -1,4 +1,10 @@
-import { getDefaultCard } from '../../src/controllers/cards.controller';
+import {
+  activateCard,
+  blockCard,
+  getCardById,
+  getDefaultCard,
+  unblockCard,
+} from '../../src/controllers/cards.controller';
 import * as CardService from '../../src/services/cards.service';
 import { DbCircuitOpenError, NotFoundError } from '../../src/common/errors/appHttpError';
 import { HTTP_STATUS } from '../../src/common/constants';
@@ -92,6 +98,112 @@ describe('cardsController', () => {
 
         await expect(getDefaultCard(req, res)).rejects.toThrow('unexpected');
       });
+    });
+  });
+
+  describe('blockCard', () => {
+    it('returns 200 and blocked card summary', async () => {
+      const card = {
+        id: randomUUID(),
+        status: 'blocked' as const,
+        displayName: 'Main Card',
+        maskedPan: '**** **** **** ' + Math.floor(1000 + Math.random() * 9000),
+        brand: 'visa' as const,
+        cardholderName: 'Anna Andersson',
+        artworkUrl: 'https://cdn.qred.example.com/card-artwork/visa.png',
+      };
+      jest.spyOn(CardService, 'blockCardForCompany').mockResolvedValue(card);
+      const req = mockRequest({ companyId: 'cmp_123', cardId: 'card_123' });
+      const res = mockResponse();
+
+      await blockCard(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(res.json).toHaveBeenCalledWith(card);
+    });
+  });
+
+  describe('getCardById', () => {
+    it('returns 200 and card summary', async () => {
+      const card = {
+        id: randomUUID(),
+        status: 'active' as const,
+        displayName: 'Main Card',
+        maskedPan: '**** **** **** ' + Math.floor(1000 + Math.random() * 9000),
+        brand: 'visa' as const,
+        cardholderName: 'Anna Andersson',
+        artworkUrl: 'https://cdn.qred.example.com/card-artwork/visa.png',
+      };
+      jest.spyOn(CardService, 'getCardByIdForCompany').mockResolvedValue(card);
+      const req = mockRequest({ companyId: 'cmp_123', cardId: 'card_123' });
+      const res = mockResponse();
+
+      await getCardById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(res.json).toHaveBeenCalledWith(card);
+    });
+
+    it('propagates not found errors', async () => {
+      jest.spyOn(CardService, 'getCardByIdForCompany').mockRejectedValue(
+        new NotFoundError({
+          detail: 'Card card_123 not found for company cmp_123.',
+        })
+      );
+      const req = mockRequest({ companyId: 'cmp_123', cardId: 'card_123' });
+      const res = mockResponse();
+
+      await expect(getCardById(req, res)).rejects.toMatchObject({
+        status: HTTP_STATUS.NOT_FOUND,
+        code: 'not_found',
+      });
+    });
+  });
+
+  describe('unblockCard', () => {
+    it('returns 200 and active card summary', async () => {
+      const card = {
+        id: randomUUID(),
+        status: 'active' as const,
+        displayName: 'Main Card',
+        maskedPan: '**** **** **** ' + Math.floor(1000 + Math.random() * 9000),
+        brand: 'visa' as const,
+        cardholderName: 'Anna Andersson',
+        artworkUrl: 'https://cdn.qred.example.com/card-artwork/visa.png',
+      };
+      jest.spyOn(CardService, 'unblockCardForCompany').mockResolvedValue(card);
+      const req = mockRequest({ companyId: 'cmp_123', cardId: 'card_123' });
+      const res = mockResponse();
+
+      await unblockCard(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(res.json).toHaveBeenCalledWith(card);
+    });
+  });
+
+  describe('activateCard', () => {
+    it('returns 200 and activation response payload', async () => {
+      jest.spyOn(CardService, 'activateCardForCompany').mockResolvedValue({
+        cardId: 'card_123',
+        status: 'active',
+        activatedAt: '2026-04-10T10:16:05.000Z',
+      });
+      const req = mockRequest({ companyId: 'cmp_123', cardId: 'card_123' });
+      const res = mockResponse();
+
+      await activateCard(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            cardId: 'card_123',
+            status: 'active',
+            activatedAt: '2026-04-10T10:16:05.000Z',
+          },
+        })
+      );
     });
   });
 });

@@ -82,7 +82,7 @@ async function loadCardSection(companyId: string, userId: string) {
 
       return {
         id: cardSummary.id,
-        status,
+        status: status as CardValue['status'],
         artworkUrl: cardSummary.artworkUrl,
       } satisfies CardValue;
     } catch (error) {

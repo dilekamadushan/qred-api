@@ -93,6 +93,18 @@ export class UnauthorizedError extends AppHttpError {
   }
 }
 
+// Generic 409 Conflict error for business rule/resource state violations
+export class ResourceConflictError extends AppHttpError {
+  constructor(detail: string) {
+    super({
+      status: 409,
+      title: 'conflict',
+      detail,
+      code: 'conflict',
+    });
+  }
+}
+
 export class RateLimitedError extends AppHttpError {
   readonly retryAfterSeconds: number;
 

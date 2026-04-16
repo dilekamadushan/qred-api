@@ -8,6 +8,7 @@ import {
   sendProblem,
   sendTypedAppError,
 } from '../common/utils/error';
+import { logError } from '../common/utils/logUtils';
 
 export function errorHandler(
   error: HttpError,
@@ -15,6 +16,12 @@ export function errorHandler(
   response: Response,
   _next: NextFunction
 ) {
+  logError(
+    'Request',
+    `${request.method} ${request.originalUrl} - ${error.status || HTTP_STATUS.INTERNAL_SERVER_ERROR}`,
+    error
+  );
+
   if (error instanceof BaseAppError) return sendTypedAppError(response, request, error);
 
   if (error.status === HTTP_STATUS.BAD_REQUEST)

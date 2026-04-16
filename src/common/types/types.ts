@@ -83,6 +83,8 @@ export type TransactionPreviewResult = {
 
 // Card types
 export type CardSummary = components['schemas']['CardSummary'];
+export type CardActivationResult = components['schemas']['CardActivationResponse']['data'];
+export type CardStatus = CardSummary['status'];
 
 // Circuit breaker types
 export type DbCircuitBreakerOptions = {
@@ -92,6 +94,7 @@ export type DbCircuitBreakerOptions = {
   volumeThreshold?: number;
 };
 
+// Company  types
 export type CompanyQueryOptions = {
   search?: string;
   pageSize?: number;
@@ -116,3 +119,8 @@ export type CompanyMembershipLike = {
     logoUrl: string;
   } | null;
 };
+
+export interface RequestContext {
+  requestId?: string;
+  [key: string]: unknown;
+}

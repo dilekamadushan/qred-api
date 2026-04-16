@@ -210,5 +210,107 @@ describe('routes', () => {
         });
       });
     });
+
+    describe('POST /v1/companies/:companyId/cards/:cardId/block', () => {
+      it('returns 200 and blocks an active card', async () => {
+        const res = await request(app)
+          .post(`/api/v1/companies/${companyId}/cards/${cardId}/block`)
+          .set('Authorization', 'Bearer integration-card-block');
+
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe('blocked');
+
+        const updatedCard = await Card.findByPk(cardId);
+        expect(updatedCard?.status).toBe('blocked');
+      });
+
+      it('returns 409 when card is not active', async () => {
+        await Card.update({ status: 'blocked', blockedAt: new Date() }, { where: { id: cardId } });
+
+        const res = await request(app)
+          .post(`/api/v1/companies/${companyId}/cards/${cardId}/block`)
+          .set('Authorization', 'Bearer integration-card-block-conflict');
+
+        expect(res.status).toBe(409);
+        expect(res.headers['content-type']).toContain('application/problem+json');
+        expect(res.body.code).toBe('conflict');
+      });
+    });
+
+    describe('GET /v1/companies/:companyId/cards/:cardId', () => {
+      it('returns 200 and the requested card', async () => {
+        const res = await request(app)
+          .get(`/api/v1/companies/${companyId}/cards/${cardId}`)
+          .set('Authorization', 'Bearer integration-card-details');
+
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toContain('application/json');
+        expect(res.body).toHaveProperty('id', cardId);
+        expect(res.body).toHaveProperty('status');
+        expect(res.body).toHaveProperty('displayName');
+        expect(res.body).toHaveProperty('maskedPan');
+      });
+
+      it('returns 404 when the card does not exist', async () => {
+        const res = await request(app)
+          .get(`/api/v1/companies/${companyId}/cards/missing-card`)
+          .set('Authorization', 'Bearer integration-card-details-not-found');
+
+        expect(res.status).toBe(404);
+        expect(res.headers['content-type']).toContain('application/problem+json');
+        expect(res.body.code).toBe('not_found');
+      });
+    });
+
+    describe('POST /v1/companies/:companyId/cards/:cardId/unblock', () => {
+      it('returns 200 and unblocks a blocked card', async () => {
+        await Card.update({ status: 'blocked', blockedAt: new Date() }, { where: { id: cardId } });
+
+        const res = await request(app)
+          .post(`/api/v1/companies/${companyId}/cards/${cardId}/unblock`)
+          .set('Authorization', 'Bearer integration-card-unblock');
+
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe('active');
+
+        const updatedCard = await Card.findByPk(cardId);
+        expect(updatedCard?.status).toBe('active');
+      });
+    });
+
+    describe('POST /v1/companies/:companyId/cards/:cardId/activate', () => {
+      it('returns 200 and activates a pending card', async () => {
+        await Card.update(
+          { status: 'pending_activation', activatedAt: null },
+          { where: { id: cardId } }
+        );
+
+        const res = await request(app)
+          .post(`/api/v1/companies/${companyId}/cards/${cardId}/activate`)
+          .set('Authorization', 'Bearer integration-card-activate')
+          .send({ confirmation: true, activatedVia: 'mobile_app' });
+
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toContain('application/json');
+        expect(res.headers['x-request-id']).toEqual(expect.any(String));
+        expect(res.body).toHaveProperty('data.cardId', cardId);
+        expect(res.body).toHaveProperty('data.status', 'active');
+        expect(res.body).toHaveProperty('data.activatedAt');
+
+        const updatedCard = await Card.findByPk(cardId);
+        expect(updatedCard?.status).toBe('active');
+      });
+
+      it('returns 409 when card is not pending activation', async () => {
+        const res = await request(app)
+          .post(`/api/v1/companies/${companyId}/cards/${cardId}/activate`)
+          .set('Authorization', 'Bearer integration-card-activate-conflict')
+          .send({ confirmation: true, activatedVia: 'mobile_app' });
+
+        expect(res.status).toBe(409);
+        expect(res.headers['content-type']).toContain('application/problem+json');
+        expect(res.body.code).toBe('conflict');
+      });
+    });
   });
 });

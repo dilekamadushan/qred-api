@@ -156,7 +156,7 @@ CardSummary:
       example: card_987
     status:
       type: string
-      enum: [pending_activation, active, blocked, closed]
+      enum: [pending_activation, active, blocked, closed, unblocked]
       example: active
     displayName:
       type: string
@@ -324,7 +324,7 @@ CardActivationRequest:
 
 CardActivationResponse:
   type: object
-  required: [data, meta]
+  required: [data]
   properties:
     data:
       type: object
@@ -338,8 +338,6 @@ CardActivationResponse:
         activatedAt:
           type: string
           format: date-time
-    meta:
-      $ref: "#/ResponseMeta"
 
 PageInfo:
   type: object

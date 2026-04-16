@@ -1,22 +1,26 @@
 import type { NextFunction, Request, Response } from 'express';
-import { logError, logInfo } from '../common/utils/logUtils';
-import type { HttpError } from 'express-openapi-validator/dist/framework/types';
+import { logInfo } from '../common/utils/logUtils';
+import { runWithRequestContext } from '../common/requestContext';
+import { randomUUID } from 'crypto';
 
-// Logs every request with method, url, status, and duration
+// Logs every request with method,requestId, url, status, and duration
 export function requestLogger(request: Request, response: Response, next: NextFunction) {
-  const start = Date.now();
-  response.on('finish', () => {
-    const duration = Date.now() - start;
-    logInfo(
-      'Request',
-      `${request.method} ${request.originalUrl} - ${response.statusCode} (${duration}ms)`
-    );
-  });
-  next();
-}
+  const requestId = randomUUID();
+  request.requestId = requestId;
+  response.setHeader('X-Request-Id', requestId);
 
-// Logs errors with request details
-export function errorLogger(error: HttpError, request: Request, _: Response, next: NextFunction) {
-  logError('Request', `${request.method} ${request.originalUrl} - ${error.status || 500}`, error);
-  next(error);
+  runWithRequestContext({ requestId }, () => {
+    const startTime = Date.now();
+
+    response.on('finish', () => {
+      const duration = Date.now() - startTime;
+
+      logInfo(
+        'Request',
+        `${request.method} ${request.originalUrl} - ${response.statusCode} (${duration}ms)`
+      );
+    });
+
+    next();
+  });
 }
