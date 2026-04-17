@@ -22,6 +22,7 @@ contract alignment using OpenAPI as the single source of truth.
 - Performance: Add caching (e.g., Redis) for dashboard endpoints.
 - Monitoring: Integrate metrics and tracing (e.g., Prometheus, OpenTelemetry).
 - Feedback: Propose regular retrospectives to improve the API delivery process.
+- Move to production grade database (Postgres SQL, MySQL)
 
 ### 1. Observability & Operations
 
@@ -167,15 +168,15 @@ Swagger UI URL:
 
 ---
 
-# Commit History
+## Commit History
 
-## First commit
+### 1st step
 
 - OpenAPI is the source of truth.
 - Swagger UI is the easiest way to present that source of truth.
 - This reduces ambiguity before implementation starts.
 
-## API design phase
+#### API design phase
 
 Introduce API design before implementation starts.
 
@@ -183,11 +184,11 @@ The contract for the mobile dashboard design lives in [openapi/qred-api.yaml](op
 
 The root spec is intentionally small. Paths live under [openapi/paths](openapi/paths) and reusable components live under [openapi/components](openapi/components).
 
-### Why REST over GraphQL
+#### Why REST over GraphQL
 
 The screen needs a small set of clearly defined operations: list available companies, fetch one company dashboard, list transactions, and activate a card. REST keeps those interactions explicit, easy to cache, easy to document in OpenAPI, and straightforward for Backend, Frontend, and PM to review together.
 
-### Dashboard endpoint motivation and partial responses
+#### Dashboard endpoint motivation and partial responses
 
 The `/dashboard` endpoint is inspired by the Backend-for-Frontend (BFF) pattern: it provides a single, UX-focused API tailored for the mobile dashboard, aggregating data from multiple backend services in parallel. The mobile client does not need to coordinate dependencies itself—the API owns that aggregation.
 
@@ -195,112 +196,44 @@ If some sections are unavailable, the API returns partial data with per-section 
 
 For advanced or power-user flows, granular endpoints are also available for direct access to specific resources (e.g., full transaction list, card activation).
 
-### Collaborative workflow
+#### UI Component to Endpoint Mapping
 
-1. PM defines the screen goal, business rules, and acceptance criteria.
-2. Frontend identifies the exact view model required to render the design without guesswork.
-3. Backend defines resource boundaries, data ownership, and operational constraints.
-4. The team resolves naming, pagination, and error semantics in the OpenAPI contract.
-5. Implementation starts only after the contract is agreed and versioned.
-
----
-
-## Step -7
-
-### Backend & API
-
-- **OpenAPI contract:** Strictly followed as the source of truth; all endpoints and schemas updated accordingly.
-- **Invoices:**
-  - Added `/api/v1/companies/{companyId}/invoices/latest` endpoint to fetch the latest due invoice for a company.
-  - Removed redundant invoice model attributes (`issuedAt`, `paidAt`).
-  - Invoice model, service, controller, and routes refactored for maintainability and OpenAPI alignment.
-
-### Circuit Breaker & Logging
-
-- Invoice and transaction services now use a shared circuit breaker for DB calls.
-- Centralized logging for errors and warnings in all service layers.
-
-### Test Coverage
-
-- **Invoices:**
-  - Added robust unit tests for service and controller logic.
-  - Added integration tests for `/invoices/latest` endpoint.
-- **Transactions:**
-  - Updated all unit and integration tests for new `userId` logic.
-  - Improved test data setup and structure for maintainability.
-    schema examples for improved documentation and testability.
-
----
-
-## UI Component to Endpoint Mapping
-
-This section maps each element of the mobile dashboard UI to its supporting API endpoint(s). This mapping ensures:
+This mapping ensures:
 
 - Every user interaction is backed by a clear contract
 - No UI feature is left unsupported by the backend
 - Reviewers can trace requirements from design to implementation
 
-**Best Practices:**
-
-- Always maintain a UI-to-endpoint map for complex products
-- Update the map as new features or endpoints are added
-- Use diagrams for clarity in cross-team reviews
-- Keep UI-only actions (like support buttons) out of the backend contract unless tracking is required
-
-### Table: UI Elements and Endpoints
-
-| UI Component                       | Endpoint(s)                                                                                                                                                                   | Notes                              |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| Logo/Menu                          | UI only                                                                                                                                                                       | No backend needed                  |
-| Company Selector                   | GET /v1/companies<br>PATCH /v1/user/company-selection                                                                                                                         | List and select company            |
-| Invoice Due (chevron/button)       | GET /v1/dashboard<br>GET /v1/companies/{companyId}/invoices/{invoiceId}                                                                                                       | Preview and details                |
-| Card Image (chevron/button)        | GET /v1/dashboard<br>GET /v1/companies/{companyId}/cards/{cardId}<br>PATCH /v1/companies/{companyId}/cards/{cardId}<br>POST /v1/companies/{companyId}/cards/{cardId}/activate | Preview, details, update, activate |
-| Remaining Spend (chevron/button)   | GET /v1/dashboard<br>GET /v1/companies/{companyId}/remaining-spend                                                                                                            | Preview and details                |
-| Latest Transactions (preview list) | GET /v1/dashboard<br>GET /v1/companies/{companyId}/transactions                                                                                                               | Preview and full list              |
-| "54 more items" Button             | GET /v1/companies/{companyId}/transactions                                                                                                                                    | Full transaction list              |
-| Activate Card Button               | POST /v1/companies/{companyId}/cards/{cardId}/activate                                                                                                                        | Card activation                    |
-| Contact Qred Support Button        | UI only                                                                                                                                                                       | Opens chat/email/help, not backend |
-
----
-
-## Mocking with Prism
+#### Mocking with Prism
 
 This project uses [Prism](https://github.com/stoplightio/prism) to mock the OpenAPI
 This allows the frontend to develop and test against realistic API responses before backend implementation is complete.
 
----
-
-**Motivation:**
-
-Maintaining a clear UI-to-endpoint map ensures that product, frontend, and backend teams are always aligned. It reduces ambiguity, speeds up onboarding, and makes it easy to spot gaps or over-engineering. Visual diagrams and tables help reviewers and new team members quickly understand how the API supports the user experience.
-
-# 2nd commit
+### 2nd step
 
 - Added OpenAPI contract and generated TypeScript types.
 - Set up initial project structure: src/app.ts, src/server.ts, - Sequelize config, and folders for models, seed, mappers, routes, and services.
 - Added /health route in src/routes/health.ts.
 
-### Automation details
+#### Automation details
 
 - The OpenAPI bundle and TypeScript types are always generated before dev, build, or start via npm lifecycle hooks (`predev`, `prebuild`, `prestart`).
 - You never need to manually run the bundle/typegen steps unless you want to.
 
 This ensures your API contract and types are always up to date with your codebase.
 
-# Step 3: Summary of Recent Changes
+### 3rd step
 
 - Implemented Data model required to support the api
 - Sequelize was used as the ORM as it has advantages like Object oriented approach and sql injection prevention etc
 - Implemented indexes and foreign keys to improve integrity and consistency of the data
 - Seed script truncates all tables before inserting data, ensuring a clean state.
 
-# Step 4: ESLint Integration
+### 4th Step: ESLint Integration
 
 - For Consistent code quality for maintainability, collaboration, and reliability
 
-# Step 5: Default Card Endpoint
-
-## Summary of Changes
+### 5th Step 5
 
 - Implemented a production-grade `/v1/companies/:companyId/card/default` endpoint with:
   - Controller and service layers for clear separation of concerns.
@@ -314,8 +247,6 @@ This ensures your API contract and types are always up to date with your codebas
 - Fixed OpenAPI schema bugs (e.g., ensured all `nullable` fields have a `type`).
 - Removed `additionalProperties: true` to enforce strict contract and type safety.
 - Updated all scripts to ensure lint, test, and build pass before deployment.
-
-## Motivation
 
 These changes ensure the API is robust, predictable, and easy to integrate with:
 
@@ -331,9 +262,7 @@ This approach supports safe, maintainable growth as the API evolves and is ready
 - **Test & Dev Auth:**
   - In test/dev, the middleware injects a fixed user for all requests, making integration tests and local development seamless.
 
-# Step 6: Transactions List Endpoint
-
-## Summary of Changes
+### 6th Step
 
 - Implemented `GET /v1/companies/{companyId}/transactions` with strict OpenAPI response shape:
   - Supports `cursor`, `status`, `dateFrom`, `dateTo`, `pageSize`, `sortBy`, `sortOrder`, and `search`.
@@ -348,31 +277,25 @@ This approach supports safe, maintainable growth as the API evolves and is ready
 - Reused one shared database circuit breaker for both default card and transactions flows:
   - Single shared breaker instance is now used across services.
   - Existing service exports remain stable for compatibility in tests and route logic.
+  - Align transactions behavior with the default card implementation quality bar.
 
-## Motivation
+### 7th Step
 
-- **Consistency:** Align transactions behavior with the default card implementation quality bar.
-- **Contract safety:** Keep runtime behavior and tests strictly synchronized with OpenAPI.
-- **Resilience:** Reusing one shared DB circuit breaker centralizes protection under dependency failure.
-- **Maintainability:** Shared pagination and circuit-breaker patterns reduce duplication and drift.
+- Added `/api/v1/companies/{companyId}/invoices/latest` endpoint to fetch the latest due invoice for a company.
+- Removed redundant invoice model attributes (`issuedAt`, `paidAt`).
+- Invoice model, service, controller, and routes refactored for maintainability and OpenAPI alignment.
 
-## /dashboard Endpoint Summary
+- Invoice and transaction services now use a shared circuit breaker for DB calls.
+- Centralized logging for errors and warnings in all service layers.
+- Implemented unit tests and integration tests
+
+### 8th Step
 
 The `/dashboard` endpoint provides a single, UX-focused API tailored for the mobile dashboard. It aggregates data from multiple backend services in parallel, including company info, card details, remaining spend, and a transaction preview. Each section is isolated with SLA timeouts and circuit breakers, ensuring that a failure or delay in one section does not block the entire response. If a section is unavailable, the API returns a partial response with per-section error objects, allowing the UI to render available data and display loading or error states for missing sections.
 
-**Key Features:**
-
-- Aggregates company, card, spend, and transaction preview data in parallel
-- Per-section SLA timeouts and circuit breaker protection
-- Returns partial responses with section-level errors on failure
-- Strict OpenAPI contract validation and type safety
-- Comprehensive integration and unit test coverage for all scenarios
-
 This design ensures a fast, resilient, and user-friendly dashboard experience, even under backend failures or heavy load.
 
-## Step 9
-
-### Remaining Spend Endpoint
+#### 9th Step
 
 - Added `GET /api/v1/companies/{companyId}/remaining-spend` to fetch detailed remaining spend for a company.
 - Implemented with clear separation of concerns and strict OpenAPI contract validation.
@@ -380,7 +303,7 @@ This design ensures a fast, resilient, and user-friendly dashboard experience, e
 - Full unit and integration tests for all success and error scenarios.
 - Explicit tests for rate-limiting and circuit breaker failures.
 
-### Step 10
+### 10thStep
 
 - Added `GET /api/v1/companies/` to fetch companies for user.
 - Implemented with clear separation of concerns and strict OpenAPI contract validation.
@@ -388,7 +311,7 @@ This design ensures a fast, resilient, and user-friendly dashboard experience, e
 - Full unit and integration tests for all success and error scenarios.
 - Explicit tests for rate-limiting and circuit breaker failures.
 
-### Step 11
+### 11th Step
 
 - Added `POST /api/v1/card/:cardId/:status` to update card statuses.
 - Implemented with best practices like transactions to ensure the integrity of data.
