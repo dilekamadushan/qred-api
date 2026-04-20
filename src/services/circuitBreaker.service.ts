@@ -45,6 +45,7 @@ export function createDbCircuitBreaker<TArgs extends unknown[], TResult>(
       } catch (error) {
         if (breaker.opened || isOpenCircuitError(error)) {
           logWarn('DbCircuitBreaker', 'Circuit breaker is OPEN (DbCircuitOpenError thrown)');
+
           throw new DbCircuitOpenError();
         }
 

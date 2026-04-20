@@ -4,8 +4,8 @@ import {
   buildTransactionQueryOptions,
   buildTransactionWhereClauses,
   mapTransactionToSummary,
-  toDashboardAmount,
 } from '../../../src/common/utils/transactions';
+import type { Transaction } from '../../../src/db/models';
 
 describe('utils/transactions (extracted helpers)', () => {
   describe('buildTransactionQueryOptions', () => {
@@ -94,7 +94,7 @@ describe('utils/transactions (extracted helpers)', () => {
         direction: 'debit',
         status: 'booked',
         merchantUrl: 'https://merchant.example/txn_1',
-      });
+      } as Transaction);
 
       expect(summary).toEqual({
         id: 'txn_1',
@@ -106,14 +106,6 @@ describe('utils/transactions (extracted helpers)', () => {
         status: 'booked',
         merchantUrl: 'https://merchant.example/txn_1',
       });
-    });
-  });
-
-  describe('toDashboardAmount', () => {
-    it('converts minor units to major with rounding', () => {
-      expect(toDashboardAmount(4500)).toBe(45);
-      expect(toDashboardAmount(4555)).toBe(45.55);
-      expect(toDashboardAmount(1)).toBe(0.01);
     });
   });
 });

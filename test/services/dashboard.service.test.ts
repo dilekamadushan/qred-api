@@ -47,8 +47,14 @@ describe('dashboard.service', () => {
       items: [
         {
           id: 'txn_1',
-          description: 'Coffee purchase',
-          amount: 45,
+          category: 'office_supplies',
+          direction: 'debit',
+          status: 'booked',
+          merchantName: 'Coffee Shop',
+          amount: {
+            amountMinor: 4500,
+            currency: 'SEK',
+          },
           createdAt: '2026-04-10T10:16:05.000Z',
           merchantUrl: 'https://app.qred.example.com/transactions/txn_1',
         },
@@ -98,8 +104,14 @@ describe('dashboard.service', () => {
               items: [
                 {
                   id: 'txn_1',
-                  description: 'Coffee purchase',
-                  amount: 45,
+                  direction: 'debit',
+                  merchantName: 'Coffee Shop',
+                  category: 'office_supplies',
+                  status: 'booked',
+                  amount: {
+                    amountMinor: 4500,
+                    currency: 'SEK',
+                  },
                   createdAt: '2026-04-10T10:16:05.000Z',
                   merchantUrl: 'https://app.qred.example.com/transactions/txn_1',
                 },

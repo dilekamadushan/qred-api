@@ -222,7 +222,7 @@ describe('routes', () => {
 
     describe('rate limiting', () => {
       it('returns 429 if rate limited', async () => {
-        for (let i = 0; i < 31; i++) {
+        for (let i = 0; i < 11; i++) {
           await request(app)
             .get(`/api/v1/companies/${companyId}/transactions`)
             .set('Authorization', 'Bearer integration-success');

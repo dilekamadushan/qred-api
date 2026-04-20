@@ -91,27 +91,7 @@ DashboardResponse:
                 items:
                   type: array
                   items:
-                    type: object
-                    required: [id, description, amount, createdAt, merchantUrl]
-                    properties:
-                      id:
-                        type: string
-                        example: txn_001
-                      description:
-                        type: string
-                        example: "Coffee purchase"
-                      amount:
-                        type: number
-                        example: 45.0
-                      createdAt:
-                        type: string
-                        format: date-time
-                        example: "2026-04-10T10:16:05Z"
-                      merchantUrl:
-                        type: string
-                        format: uri
-                        description: Deep link to transaction details.
-                        example: "https://app.qred.example.com/transactions/txn_001"
+                    $ref: "#/TransactionSummary"
         viewMore:
           allOf:
             - $ref: "#/DashboardSection"

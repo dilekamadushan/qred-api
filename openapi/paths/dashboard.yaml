@@ -7,7 +7,7 @@
     description: |
       Returns all data required to render the main dashboard screen in a single
       request, including card summary, remaining spend, and a preview
-      of the latest transactions. (Invoice details are not included.)
+      of the latest transactions.
 
       This endpoint is an aggregated read model. The backend fetches data from multiple services in parallel, with timeouts and fallbacks. If some sections are unavailable, the API returns partial data with per-section status, allowing the UI to render what is available immediately and show loading/error states for missing sections. This keeps the UX fast and resilient, while still supporting granular endpoints for advanced flows.
 
@@ -59,19 +59,34 @@
                       value:
                         items:
                           - id: txn_001
-                            description: "Coffee purchase"
-                            amount: 45.0
                             createdAt: "2026-04-10T10:16:05Z"
+                            merchantName: "Espresso House"
+                            category: "coffee"
+                            amount:
+                              amountMinor: 4500
+                              currency: SEK
+                            direction: debit
+                            status: booked
                             merchantUrl: "https://app.qred.example.com/merchants/espresso-house"
                           - id: txn_002
-                            description: "Lunch"
-                            amount: 120.0
                             createdAt: "2026-04-09T12:30:00Z"
+                            merchantName: "Lunch Bar"
+                            category: "food"
+                            amount:
+                              amountMinor: 12000
+                              currency: SEK
+                            direction: debit
+                            status: booked
                             merchantUrl: "https://app.qred.example.com/merchants/lunch-bar"
                           - id: txn_003
-                            description: "Taxi"
-                            amount: 300.0
                             createdAt: "2026-04-08T08:15:00Z"
+                            merchantName: "Taxi"
+                            category: "transport"
+                            amount:
+                              amountMinor: 30000
+                              currency: SEK
+                            direction: debit
+                            status: booked
                             merchantUrl: "https://app.qred.example.com/merchants/taxi"
                     viewMore:
                       value:
@@ -93,19 +108,34 @@
                       value:
                         items:
                           - id: txn_001
-                            description: "Coffee purchase"
-                            amount: 45.0
                             createdAt: "2026-04-10T10:16:05Z"
+                            merchantName: "Espresso House"
+                            category: "coffee"
+                            amount:
+                              amountMinor: 4500
+                              currency: SEK
+                            direction: debit
+                            status: booked
                             merchantUrl: "https://app.qred.example.com/merchants/espresso-house"
                           - id: txn_002
-                            description: "Lunch"
-                            amount: 120.0
                             createdAt: "2026-04-09T12:30:00Z"
+                            merchantName: "Lunch Bar"
+                            category: "food"
+                            amount:
+                              amountMinor: 12000
+                              currency: SEK
+                            direction: debit
+                            status: booked
                             merchantUrl: "https://app.qred.example.com/merchants/lunch-bar"
                           - id: txn_003
-                            description: "Taxi"
-                            amount: 300.0
                             createdAt: "2026-04-08T08:15:00Z"
+                            merchantName: "Taxi"
+                            category: "transport"
+                            amount:
+                              amountMinor: 30000
+                              currency: SEK
+                            direction: debit
+                            status: booked
                             merchantUrl: "https://app.qred.example.com/merchants/taxi"
                     viewMore:
                       value:

@@ -59,3 +59,8 @@ export const CARD_SUMMARY_ATTRIBUTES = [
   'cardholderName',
   'artworkUrl',
 ] as const;
+
+export const ENCODING_FORMAT = {
+  BASE_64: 'base64',
+  UTF_8: 'utf-8',
+} as const;

@@ -2,13 +2,13 @@ import type { components } from '../../generated/openapi';
 import type { SORT_ORDER } from '../constants';
 
 export type TransactionSummary = components['schemas']['TransactionSummary'];
-export type PageInfo = components['schemas']['PageInfo'];
-export type TransactionListResponse = components['schemas']['TransactionListResponse'];
+type PageInfo = components['schemas']['PageInfo'];
+type TransactionListResponse = components['schemas']['TransactionListResponse'];
 export type CursorPayload = { createdAt: string; id: string };
 export type TransactionListData = TransactionListResponse['data'];
-export type SortBy = 'createdAt' | 'amount' | 'merchantName';
-export type SortOrder = [keyof typeof SORT_ORDER][number];
-export type TransactionStatus = 'pending' | 'booked' | 'declined' | 'reversed';
+type SortBy = 'createdAt' | 'amount' | 'merchantName';
+type SortOrder = [keyof typeof SORT_ORDER][number];
+type TransactionStatus = 'pending' | 'booked' | 'declined' | 'reversed';
 
 export type TransactionQueryOptions = {
   cursor?: string;
@@ -73,11 +73,8 @@ export type SelectedCompanyResult = {
 };
 
 // Transaction types
-export type TransactionPreviewValue =
-  components['schemas']['DashboardResponse']['data']['transactions']['value'];
-export type TransactionPreviewItem = NonNullable<TransactionPreviewValue>['items'][number];
 export type TransactionPreviewResult = {
-  items: TransactionPreviewItem[];
+  items: TransactionSummary[];
   remainingTransactions: number;
 };
 

@@ -15,7 +15,6 @@ import {
   buildTransactionPaginationClause,
   buildTransactionWhereClauses,
   mapTransactionToSummary,
-  toDashboardAmount,
 } from '../common/utils/transactions';
 
 import type { TransactionPreviewResult } from '../common/types/types';
@@ -78,7 +77,7 @@ async function queryTransactions(
       createdAt: new Date(lastItem.createdAt).toISOString(),
       id: lastItem.id,
     }));
-    const items = pageItems.map(mapTransactionToSummary);
+    const items = pageItems.map((transaction) => mapTransactionToSummary(transaction));
 
     return {
       items,
@@ -90,6 +89,7 @@ async function queryTransactions(
       `Error querying transactions for companyId: ${companyId}`,
       error
     );
+
     throw new InternalServerError({ detail: 'Failed to load transactions data.' });
   }
 }
@@ -101,28 +101,17 @@ async function queryTransactionPreview(
 ): Promise<TransactionPreviewResult> {
   try {
     const where = { companyId, userId };
-    const [transactions, totalCount] = await Promise.all([
-      Transaction.findAll({
-        where,
-        attributes: ['id', 'description', 'amountMinor', 'createdAt', 'merchantUrl'],
-        order: [
-          ['createdAt', SORT_ORDER.DESC],
-          ['id', SORT_ORDER.DESC],
-        ],
-        limit: previewLimit,
-        raw: true,
+    const [transactionsPage, totalCount] = await Promise.all([
+      queryTransactions(companyId, userId, {
+        pageSize: previewLimit,
       }),
       Transaction.count({ where }),
     ]);
 
+    const transactions = transactionsPage.items.slice(0, previewLimit);
+
     return {
-      items: transactions.map((transaction) => ({
-        id: transaction.id,
-        description: transaction.description,
-        amount: toDashboardAmount(transaction.amountMinor),
-        createdAt: new Date(transaction.createdAt).toISOString(),
-        merchantUrl: transaction.merchantUrl,
-      })),
+      items: transactions,
       remainingTransactions: Math.max(totalCount - transactions.length, 0),
     };
   } catch (error) {

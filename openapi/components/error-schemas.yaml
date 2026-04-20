@@ -409,6 +409,6 @@ InternalServerErrorProblemDetails:
         title: INTERNAL_SERVER_ERROR
         status: 500
         detail: An unexpected server error occurred.
-        instance: https://api.qred.example.com/api/v1/companies
+        instance: https://api.qred.example.com/api/v1/dashboard
         requestId: req_123456
         code: INTERNAL_SERVER_ERROR

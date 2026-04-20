@@ -2,7 +2,7 @@ import { Op, type WhereOptions } from 'sequelize';
 import type { TransactionQueryOptions } from '../types/types';
 import type { TransactionSummary } from '../types/types';
 import { SORT_ORDER } from '../constants';
-import { toMajorAmountFromMinor } from './money';
+import type { Transaction } from '../../db/models';
 
 export const buildTransactionQueryOptions = (
   query: Record<string, unknown>
@@ -67,17 +67,7 @@ export const buildTransactionPaginationClause = (
       };
 };
 
-export const mapTransactionToSummary = (transaction: {
-  id: string;
-  createdAt: Date | string;
-  merchantName: string;
-  category: string;
-  amountMinor: number;
-  currency: string;
-  direction: TransactionSummary['direction'];
-  status: TransactionSummary['status'];
-  merchantUrl: string;
-}): TransactionSummary => {
+export const mapTransactionToSummary = (transaction: Transaction): TransactionSummary => {
   return {
     id: transaction.id,
     createdAt: new Date(transaction.createdAt).toISOString(),
@@ -88,8 +78,4 @@ export const mapTransactionToSummary = (transaction: {
     status: transaction.status,
     merchantUrl: transaction.merchantUrl,
   };
-};
-
-export const toDashboardAmount = (amountMinor: number): number => {
-  return toMajorAmountFromMinor(amountMinor);
 };

@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+import { ENCODING_FORMAT } from '../constants';
 
 interface PageInfo {
   pageSize: number;
@@ -44,6 +45,7 @@ export const buildPaginationLinks = (
   } else {
     next = null;
   }
+
   return { self, next };
 };
 
@@ -59,7 +61,7 @@ export const encodeCursor = (obj: Record<string, unknown>): string => {
  */
 export const decodeCursor = <T = unknown>(cursor: string): T | null => {
   try {
-    return JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
+    return JSON.parse(Buffer.from(cursor, ENCODING_FORMAT.BASE_64).toString(ENCODING_FORMAT.UTF_8));
   } catch {
     return null;
   }

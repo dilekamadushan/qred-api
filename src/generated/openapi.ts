@@ -57,7 +57,7 @@ export interface paths {
          * Get the mobile dashboard for the authenticated user’s selected company.
          * @description Returns all data required to render the main dashboard screen in a single
          *     request, including card summary, remaining spend, and a preview
-         *     of the latest transactions. (Invoice details are not included.)
+         *     of the latest transactions.
          *
          *     This endpoint is an aggregated read model. The backend fetches data from multiple services in parallel, with timeouts and fallbacks. If some sections are unavailable, the API returns partial data with per-section status, allowing the UI to render what is available immediately and show loading/error states for missing sections. This keeps the UX fast and resilient, while still supporting granular endpoints for advanced flows.
          *
@@ -285,6 +285,31 @@ export interface components {
             /** @description Error message if the section failed to load. */
             error?: string | null;
         };
+        Money: {
+            /** @description Monetary amount in minor units, for example ore for SEK. */
+            amountMinor: number;
+            currency: string;
+        };
+        TransactionSummary: {
+            id: string;
+            /**
+             * Format: date-time
+             * @description Transaction creation timestamp.
+             */
+            createdAt: string;
+            merchantName: string;
+            category: string;
+            amount: components["schemas"]["Money"];
+            /** @enum {string} */
+            direction: "debit" | "credit";
+            /** @enum {string} */
+            status: "pending" | "booked" | "declined" | "reversed";
+            /**
+             * Format: uri
+             * @description Deep link to merchant or transaction details.
+             */
+            merchantUrl: string;
+        };
         DashboardResponse: {
             data: {
                 company: {
@@ -329,25 +354,7 @@ export interface components {
                 } & components["schemas"]["DashboardSection"];
                 transactions: {
                     value?: {
-                        items: {
-                            /** @example txn_001 */
-                            id: string;
-                            /** @example Coffee purchase */
-                            description: string;
-                            /** @example 45 */
-                            amount: number;
-                            /**
-                             * Format: date-time
-                             * @example 2026-04-10T10:16:05Z
-                             */
-                            createdAt: string;
-                            /**
-                             * Format: uri
-                             * @description Deep link to transaction details.
-                             * @example https://app.qred.example.com/transactions/txn_001
-                             */
-                            merchantUrl: string;
-                        }[];
+                        items: components["schemas"]["TransactionSummary"][];
                     };
                 } & components["schemas"]["DashboardSection"];
                 viewMore: {
@@ -558,11 +565,6 @@ export interface components {
              */
             code?: "company_membership_not_found";
         };
-        Money: {
-            /** @description Monetary amount in minor units, for example ore for SEK. */
-            amountMinor: number;
-            currency: string;
-        };
         /**
          * @example {
          *       "label": "Invoice due",
@@ -668,26 +670,6 @@ export interface components {
             detail?: string;
             /** @example unprocessable_entity */
             code?: string;
-        };
-        TransactionSummary: {
-            id: string;
-            /**
-             * Format: date-time
-             * @description Transaction creation timestamp.
-             */
-            createdAt: string;
-            merchantName: string;
-            category: string;
-            amount: components["schemas"]["Money"];
-            /** @enum {string} */
-            direction: "debit" | "credit";
-            /** @enum {string} */
-            status: "pending" | "booked" | "declined" | "reversed";
-            /**
-             * Format: uri
-             * @description Deep link to merchant or transaction details.
-             */
-            merchantUrl: string;
         };
         TransactionListResponse: {
             data: {

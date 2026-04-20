@@ -15,56 +15,39 @@ contract alignment using OpenAPI as the single source of truth.
 
 ## Further Improvements
 
-- Security: Add authentication/authorization middleware to verify jwt token with secret key.
-- Integrate standard logger such as winston for industrial level application
-- CI/CD: Set up automated tests and linting in CI.
+- [Security and compliance](#security--compliance)
+- [ Improve Observability and monitoring](#observability)
 - Frontend Collaboration: Host the shared API mock server for frontend use.
-- Performance: Add caching (e.g., Redis) for dashboard endpoints.
-- Monitoring: Integrate metrics and tracing (e.g., Prometheus, OpenTelemetry).
-- Feedback: Propose regular retrospectives to improve the API delivery process.
+- CI/CD Integration: Set up automated tests and linting in CI.
+- [Performance](#performance--scalability)
+- Data Integrity Enhancements - Add versioning to prevent lost updates in concurrent environments and implement Soft Deletes for recovery of data
+- Business Logic/Test Improvements - cover edge cases in service layer and with integration tests
+
 - Move to production grade database (Postgres SQL, MySQL)
+- Real-time updates: Instantly push new transactions, card status changes, balance updates, or notifications to the user without polling through websockets
+- [Improve DEV experience](#developer-experience)
 
-### 1. Observability & Operations
-
-- **Structured Logging:** Integrate a structured logger (e.g., pino, winston) with trace IDs and correlation for all requests.
-- **Distributed Tracing:** Add OpenTelemetry for end-to-end tracing across services and DB calls.
-- **Metrics:** Expose Prometheus metrics for key API, DB, and circuit breaker events.
-- **Alerting:** Set up SLO-based alerting for error rates, latency, and circuit breaker open events.
-
-### 2. Security & Compliance
+### Security & Compliance
 
 - **OAuth2/JWT:** Integrate with a real auth provider (e.g., Auth0, Azure AD) and enforce scopes/roles.
 - **Audit Logging:** Track sensitive actions and data access for compliance.
 - **Secrets Management:** Move secrets to a vault (e.g., AWS Secrets Manager, HashiCorp Vault).
 
-### 3. Developer Experience & CI/CD
+### Observability
 
-- **Type-Safe API Client:** Auto-generate a TypeScript client SDK from OpenAPI for frontend use.
-- **Contract-First CI:** Add CI checks to block merges if OpenAPI and implementation drift.
-- **Preview Environments:** Use ephemeral environments for every PR (e.g., with Docker Compose or Vercel/Nx).
-- **Test Data Factories:** Use factories (e.g., fishery) for more expressive test data.
+- **Structured Logging:** Integrate a structured logger (e.g., pino, winston) with trace IDs and correlation for all requests.
+- **Metrics:** Expose Prometheus metrics for key API, DB, and circuit breaker events.
 
-### 4. Performance & Scalability
+### Performance & Scalability
 
 - **Caching:** Add Redis for hot-path caching (e.g., company, card, spend summaries).
 - **Async Processing:** Move slow/side-effecting flows (e.g., invoice generation) to background jobs (BullMQ, SQS).
-- **Horizontal Scaling:** Containerize and add Kubernetes manifests for production scaling.
+- **Horizontal Scaling:** Move first with serverless
 
-### 5. Product & Team Collaboration
+### Developer Experience
 
-- **API Review Rituals:** Schedule regular contract review sessions with FE/PM to catch ambiguity early.
-- **API Versioning:** Plan for versioned APIs (e.g., v2) with clear deprecation policy.
-- **API Analytics:** Track endpoint usage and error rates to inform product decisions.
-
-### 6. Documentation & Onboarding
-
-- **Interactive API Docs:** Integrate Redoc or Stoplight for live, interactive docs.
-- **Architecture Decision Records (ADR):** Document key design decisions and tradeoffs.
-- **Onboarding Guide:** Add a step-by-step onboarding guide for new engineers.
-
----
-
-These steps would ensure the API is not only robust and maintainable, but also observable, secure, and a joy to work with for both engineers and product teams.
+- **Preview Environments:** Use ephemeral environments for every PR (e.g., with Docker Compose or Vercel/Nx).
+- **Test Data Factories:** Use factories (e.g., fishery) for more expressive test data.
 
 ## Key Features Implemented
 

@@ -146,28 +146,27 @@ async function queryUpdateSelectedCompany(userId: string, companyId: string): Pr
       { where: { userId }, transaction }
     );
 
-    if (!anyCompanyCount) {
+    if (!anyCompanyCount)
       throw new NotFoundError({
         detail: 'No company membership found for the requested company.',
         code: 'company_membership_not_found',
         title: 'company_membership_not_found',
       });
-    }
 
     const [updatedCount] = await UserCompanyMembership.update(
       { isSelected: true },
       { where: { userId, companyId }, transaction }
     );
 
-    if (!updatedCount) {
+    if (!updatedCount)
       throw new NotFoundError({
         detail: 'No company membership found for the requested company.',
         code: 'company_membership_not_found',
         title: 'company_membership_not_found',
       });
-    }
 
     await transaction.commit();
+
     return true;
   } catch (error) {
     await transaction.rollback();
