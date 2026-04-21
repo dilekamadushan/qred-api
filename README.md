@@ -61,7 +61,7 @@ contract alignment using OpenAPI as the single source of truth.
 - #### OpenAPI-Driven Development -
   - All endpoints and schemas are defined in OpenAPI and strictly validated at runtime. TypeScript types are generated from the contract.
 - #### Code quality
-  - Setting up prettier and lint for enhncing quality of code and readability
+  - Setting up prettier and lint for enhncing quality of code and readability, and also followed best practices such as using object type for input if number of args is greater than 3, using comments, new line for returns etc
 - #### BFF pattern
   - Dashboard Endpoint - The `/dashboard` endpoint aggregates company, card, spend, and transaction preview data in parallel, returning partial responses if any section fails (with per-section error objects). This ensures the UI remains responsive and resilient.
 - #### Resilience Patterns:

@@ -61,11 +61,11 @@ export const buildCursorClause = (decoded: CompanyCursorPayload): WhereOptions =
     } as WhereOptions;
   }
 
-  const col = sortField === 'legalName' ? '$company.legalName$' : '$company.name$';
+  const column = sortField === 'legalName' ? '$company.legalName$' : '$company.name$';
   return {
     [Op.or]: [
-      { [col]: { [Op.gt]: sortValue as string } },
-      { [Op.and]: [{ [col]: sortValue as string }, { companyId: { [Op.gt]: id } }] },
+      { [column]: { [Op.gt]: sortValue as string } },
+      { [Op.and]: [{ [column]: sortValue as string }, { companyId: { [Op.gt]: id } }] },
     ],
   } as WhereOptions;
 };

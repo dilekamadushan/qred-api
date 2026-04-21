@@ -39,7 +39,7 @@ export async function initializeDatabase(options?: { force?: boolean; seed?: boo
   }
 
   await sequelize.sync({ force: options?.force ?? false });
-
+  // seed data by default
   if (options?.seed !== false) {
     await seedDatabase({ force: options?.force ?? false });
   }

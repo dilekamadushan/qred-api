@@ -111,31 +111,10 @@ export function initCardModel(sequelize: Sequelize): typeof Card {
       tableName: 'cards',
       indexes: [
         {
-          name: 'cards_company_idx',
-          fields: ['companyId'],
-        },
-        {
-          name: 'cards_user_idx',
-          fields: ['userId'],
-        },
-        {
           name: 'cards_default_per_user_company_idx',
           unique: true,
           fields: ['companyId', 'userId'],
           where: { isDefault: true },
-        },
-        // Removed unique constraint on companyId and userId to allow multiple cards per user per company
-        {
-          name: 'cards_company_status_idx',
-          fields: ['companyId', 'status'],
-        },
-        {
-          name: 'cards_default_per_company_idx',
-          unique: true,
-          fields: ['companyId'],
-          where: {
-            isDefault: true,
-          },
         },
       ],
     }

@@ -1,7 +1,7 @@
 import type { WhereOptions } from 'sequelize';
 import { Op } from 'sequelize';
 import type {
-  CursorPayload,
+  TransactionCursorPayload,
   TransactionListData,
   TransactionQueryOptions,
 } from '../common/types/types';
@@ -49,11 +49,13 @@ async function queryTransactions(
       sortBy = 'createdAt',
       sortOrder = SORT_ORDER.DESC,
     } = options;
-
+    // Build where clauses based on filters
     const andClauses = buildTransactionWhereClauses(companyId, userId, options);
     let where: WhereOptions = andClauses.length === 1 ? andClauses[0] : { [Op.and]: andClauses };
 
-    const decoded: CursorPayload | null = cursor ? decodeCursor<CursorPayload>(cursor) : null;
+    const decoded: TransactionCursorPayload | null = cursor
+      ? decodeCursor<TransactionCursorPayload>(cursor)
+      : null;
     if (decoded) {
       const paginationClause = buildTransactionPaginationClause(decoded, sortOrder);
       where = { [Op.and]: [...andClauses, paginationClause] };
@@ -72,7 +74,7 @@ async function queryTransactions(
       limit: pageSize + 1,
       raw: true,
     });
-
+    // Build pagination info
     const { pageItems, page } = buildCursorPage(transactions, pageSize, (lastItem) => ({
       createdAt: new Date(lastItem.createdAt).toISOString(),
       id: lastItem.id,
@@ -107,7 +109,7 @@ async function queryTransactionPreview(
       }),
       Transaction.count({ where }),
     ]);
-
+    // queryTransactions always sends one more
     const transactions = transactionsPage.items.slice(0, previewLimit);
 
     return {

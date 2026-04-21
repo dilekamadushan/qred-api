@@ -1,10 +1,11 @@
 import type { components } from '../../generated/openapi';
 import type { SORT_ORDER } from '../constants';
 
+// Transaction types
 export type TransactionSummary = components['schemas']['TransactionSummary'];
 type PageInfo = components['schemas']['PageInfo'];
 type TransactionListResponse = components['schemas']['TransactionListResponse'];
-export type CursorPayload = { createdAt: string; id: string };
+export type TransactionCursorPayload = { createdAt: string; id: string };
 export type TransactionListData = TransactionListResponse['data'];
 type SortBy = 'createdAt' | 'amount' | 'merchantName';
 type SortOrder = [keyof typeof SORT_ORDER][number];
@@ -19,7 +20,13 @@ export type TransactionQueryOptions = {
   sortBy?: SortBy;
   sortOrder?: SortOrder;
   search?: string;
-}; // User info attached to req.user by auth middleware
+};
+export type TransactionPreviewResult = {
+  items: TransactionSummary[];
+  remainingTransactions: number;
+};
+
+// User info attached to req.user by auth middleware
 export type User = {
   userId: string;
   [key: string]: unknown;
@@ -70,12 +77,6 @@ export type SectionError = { error: string };
 export type SelectedCompanyResult = {
   companyId: string;
   section: DashboardData['company'];
-};
-
-// Transaction types
-export type TransactionPreviewResult = {
-  items: TransactionSummary[];
-  remainingTransactions: number;
 };
 
 // Card types

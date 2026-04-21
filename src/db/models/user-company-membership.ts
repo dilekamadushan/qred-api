@@ -83,10 +83,6 @@ export function initUserCompanyMembershipModel(sequelize: Sequelize): typeof Use
           unique: true,
           fields: ['userId', 'companyId'],
         },
-        {
-          name: 'user_company_memberships_company_idx',
-          fields: ['companyId'],
-        },
         // Enforce only one selected membership
         {
           unique: true,

@@ -129,24 +129,8 @@ export function initTransactionModel(sequelize: Sequelize): typeof Transaction {
           fields: ['companyId', 'userId', 'createdAt'],
         },
         {
-          name: 'transactions_user_created_at_idx',
-          fields: ['userId', 'createdAt'],
-        },
-        {
-          name: 'transactions_company_status_created_at_idx',
-          fields: ['companyId', 'status', 'createdAt'],
-        },
-        {
-          name: 'transactions_company_amount_idx',
-          fields: ['companyId', 'amountMinor'],
-        },
-        {
           name: 'transactions_company_merchant_idx',
           fields: ['companyId', 'merchantName'],
-        },
-        {
-          name: 'transactions_card_created_at_idx',
-          fields: ['cardId', 'createdAt'],
         },
       ],
     }
